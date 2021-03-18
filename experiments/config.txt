@@ -1,0 +1,560 @@
+2020-11-11-14:07:45
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2020-11-11-14:07:47
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-11-00:53:38
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-11-00:53:42
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-11-00:54:47
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-11-00:54:50
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:01:23
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x2.pt
+pre_train_dual: ./trained_models/face_trained_dual_x2.pt
+n_blocks: 30
+n_feats: 16
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:01:27
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x2.pt
+pre_train_dual: ./trained_models/face_trained_dual_x2.pt
+n_blocks: 30
+n_feats: 16
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:05:52
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [3]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x3.pt
+pre_train_dual: ./trained_models/face_trained_dual_x3.pt
+n_blocks: 30
+n_feats: 16
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:05:54
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [3]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x3.pt
+pre_train_dual: ./trained_models/face_trained_dual_x3.pt
+n_blocks: 30
+n_feats: 16
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:07:38
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:07:41
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:08:05
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
+2021-03-12-01:08:08
+
+n_threads: 0
+cpu: False
+n_GPUs: 1
+seed: 1
+data_dir: ./dataset
+data_train: DF2K
+data_test: face_test
+data_range: 
+scale: [2, 4]
+patch_size: 12
+rgb_range: 255
+n_colors: 3
+no_augment: False
+model: DRN-L
+pre_train: ./trained_models/face_trained_x4.pt
+pre_train_dual: ./trained_models/face_trained_dual_x4.pt
+n_blocks: 40
+n_feats: 20
+negval: 0.2
+test_every: 10000
+epochs: 1000
+batch_size: 8
+self_ensemble: False
+test_only: True
+lr: 0.0001
+eta_min: 1e-07
+beta1: 0.9
+beta2: 0.999
+epsilon: 1e-08
+weight_decay: 0
+loss: 1*L1
+skip_threshold: 1000000.0
+dual_weight: 0.1
+save: ./experiments
+print_every: 100
+save_results: True
+dual: True
+
