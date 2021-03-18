@@ -28,11 +28,13 @@ class DRN(nn.Module):
         super(DRN, self).__init__()
         self.opt = opt
         self.scale = opt.scale
+        #add float_scale
+        self.float_scale = opt.float_scale
+        #phase is n about 2^n 
         self.phase = len(opt.scale)
         n_blocks = opt.n_blocks
         n_feats = opt.n_feats
         kernel_size = 3
-
         sf= 0
         if (self.scale[0]%2) ==0:
             sf =2
@@ -131,34 +133,37 @@ class DRN(nn.Module):
             # upsample to SR features
             x = self.up_blocks[idx](x)
             # concat down features and upsample features
-            copy = copies[self.phase - idx - 1]
 
+            # if args.scale[0] ==3:
+            #     x =nnf.interpolate(x, size=(len(copy[0][0]),len(copy[0][0][0])), mode='bicubic', align_corners=False)
 
-            if args.scale[0] ==3:
-                x =nnf.interpolate(x, size=(len(copy[0][0]),len(copy[0][0][0])), mode='bicubic', align_corners=False)
-
-            x = torch.cat((x, copy), 1)
+            x = torch.cat((x, copies[self.phase - idx - 1]), 1)
             # output sr imgs
             sr = self.tail[idx + 1](x)
 
-            local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
-            up_x = self.repeat_x(sr)     ### the output is (N*r*r,inC,inH,inW)
-
-            # N*r^2 x [inC * kH * kW] x [inH * inW]
-            cols = nn.functional.unfold(up_x, 3,padding=1)
-            scale_int = math.ceil(self.scale[0])
-
-            cols = cols.contiguous().view(cols.size(0)//(scale_int**2),scale_int**2, cols.size(1), cols.size(2), 1).permute(0,1, 3, 4, 2).contiguous()
-
-            local_weight = local_weight.contiguous().view(x.size(2),scale_int, x.size(3),scale_int,-1,3).permute(1,3,0,2,4,5).contiguous()
-            local_weight = local_weight.contiguous().view(scale_int**2, x.size(2)*x.size(3),-1, 3)
-
-            out = torch.matmul(cols,local_weight).permute(0,1,4,2,3)
-            out = out.contiguous().view(x.size(0),scale_int,scale_int,3,x.size(2),x.size(3)).permute(0,3,4,1,5,2)
-            out = out.contiguous().view(x.size(0),3, scale_int*x.size(2),scale_int*x.size(3))
+            
 
             sr = self.add_mean(sr)
 
-            results.append(sr)
+        
+        # local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
+        # # print(local_weight.shape)
+        # up_x = self.repeat_x(sr)     ### the output is (N*r*r,inC,inH,inW)
+
+        # # N*r^2 x [inC * kH * kW] x [inH * inW]
+        # cols = nn.functional.unfold(up_x, 3,padding=1)
+        # scale_int = math.ceil(self.scale[0])
+
+        # cols = cols.contiguous().view(cols.size(0)//(scale_int**2),scale_int**2, cols.size(1), cols.size(2), 1).permute(0,1, 3, 4, 2).contiguous()
+
+        # local_weight = local_weight.contiguous().view(x.size(2),scale_int, x.size(3),scale_int,-1,3).permute(1,3,0,2,4,5).contiguous()
+        # local_weight = local_weight.contiguous().view(scale_int**2, x.size(2)*x.size(3),-1, 3)
+
+        # out = torch.matmul(cols,local_weight).permute(0,1,4,2,3)
+        # out = out.contiguous().view(x.size(0),scale_int,scale_int,3,x.size(2),x.size(3)).permute(0,3,4,1,5,2)
+        # out = out.contiguous().view(x.size(0),3, scale_int*x.size(2),scale_int*x.size(3))
+
+        # results.append(out)
+        results.append(sr)
 
         return results

@@ -1,7 +1,8 @@
 import argparse
 import utility
 import numpy as np
-
+import math
+import decimal
 parser = argparse.ArgumentParser(description='DRN')
 
 parser.add_argument('--n_threads', type=int, default=0,
@@ -20,7 +21,9 @@ parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='',
                     help='train/test data range')
-parser.add_argument('--scale', type=int, default=4,
+# parser.add_argument('--scale', type=int, default=4,
+#                     help='super resolution scale')
+parser.add_argument('--scale', type=str, default='2.0',
                     help='super resolution scale')
 parser.add_argument('--patch_size', type=int, default=12,
                     help='output patch size')
@@ -77,15 +80,15 @@ parser.add_argument('--save_results', action='store_true',
                     help='save output results')
 
 args = parser.parse_args()
+strscale = args.scale.split('.')
+args.scale = math.floor(float(strscale[0]))
+args.float_scale = float(strscale[1]) / 10
 
 utility.init_model(args)
 
-# scale = [2,4] for 4x SR to load data
-# scale = [2,4,8] for 8x SR to load data
-if (args.scale & (args.scale -1)) ==0:
-    args.scale = [pow(2, s+1) for s in range(int(np.log2(args.scale)))]
-elif args.scale ==3:
-    args.scale = [3]
+args.scale = [pow(2, s+1) for s in range(int(np.log2(args.scale)))]
+
+
 
 for arg in vars(args):
     if vars(args)[arg] == 'True':

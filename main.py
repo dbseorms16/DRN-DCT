@@ -12,7 +12,7 @@ from checkpoint import Checkpoint
 from trainer import Trainer
 
 
-print("main scale >>"+str(args.scale[0]))
+# print("main scale >>"+str(args.scale[0]))
 utility.set_seed(args.seed)
 checkpoint = Checkpoint(args)
 

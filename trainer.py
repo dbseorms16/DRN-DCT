@@ -20,6 +20,7 @@ class Trainer():
     def __init__(self, opt, loader, my_model, my_loss, ckp):
         self.opt = opt
         self.scale = opt.scale
+        self.float_scale = opt.float_scale
         self.ckp = ckp
         self.loader_train = loader.loader_train
         self.loader_test = loader.loader_test
@@ -41,7 +42,6 @@ class Trainer():
         scale: is the upsampling times
         '''
         outH, outW = int(scale*inH), int(scale*inW)
-
         #### mask records which pixel is invalid, 1 valid or o invalid
         #### h_offset and w_offset caculate the offset to generate the input matrix
         scale_int = int(math.ceil(scale))
@@ -56,7 +56,7 @@ class Trainer():
             #scale_mat[0,scale_int-1]=1-res_scale
             #scale_mat[0,scale_int-2]= res_scale
             scale_mat = torch.cat([scale_mat]*(inH*inW*(scale_int**2)),0)  ###(inH*inW*scale_int**2, 4)
-
+            
         ####projection  coordinate  and caculate the offset 
         h_project_coord = torch.arange(0,outH, 1).float().mul(1.0/scale)
         int_h_project_coord = torch.floor(h_project_coord)
@@ -110,7 +110,9 @@ class Trainer():
         pos_mat = pos_mat.contiguous().view(1, -1,2)
         if add_scale:
             pos_mat = torch.cat((scale_mat.view(1,-1,1), pos_mat),2)
-
+        # print('pos_mat')
+        # print(pos_mat)
+        # print(inW,inH)
         return pos_mat,mask_mat ##outH*outW*2 outH=scale_int*inH , outW = scale_int *inW
 
     def train(self):
@@ -225,8 +227,11 @@ class Trainer():
 
         timer_test = utility.timer()
         with torch.no_grad():
-            scale = max(self.scale)
-            for si, s in enumerate([scale]):
+            int_scale = max(self.scale)
+            float_scale = self.float_scale
+            scale = int_scale + float_scale
+            float_scale = float_scale + 1
+            for si, s in enumerate([int_scale]):
                 eval_psnr = 0
                 eval_simm =0
                 tqdm_test = tqdm(self.loader_test, ncols=80)
@@ -244,7 +249,8 @@ class Trainer():
                     #_,_,outH,outW = hr.size()
                     #timer_test.tic()
 
-                    scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
+                    scale_coord_map, mask = self.input_matrix_wpn(H,W, float_scale)
+                    print(mask)
                     #position, mask = self.pos_matrix(H,W,self.args.scale[idx_scale])
                     #print(timer_test.toc())
                     scale_coord_map = scale_coord_map.to("cuda:0")
@@ -254,9 +260,9 @@ class Trainer():
 
                     if isinstance(sr, list): sr = sr[-1]
 
-                    re_sr = torch.masked_select(sr,mask.to("cuda:0"))
+                    # re_sr = torch.masked_select(sr,mask.to("cuda:0"))
                     timer_test.hold()
-                    sr = re_sr.contiguous().view(N,C,outH,outW)
+                    # sr = re_sr.contiguous().view(N,C,outH,outW)
                     sr = utility.quantize(sr, self.opt.rgb_range)
 
                     if not no_eval:
