@@ -78,7 +78,9 @@ parser.add_argument('--print_every', type=int, default=100,
                     help='how many batches to wait before logging training status')
 parser.add_argument('--save_results', action='store_true',
                     help='save output results')
-
+                    
+parser.add_argument('--pre_train_metasr', type=str, default='.',
+                    help='pre-trained dual model directory')
 args = parser.parse_args()
 strscale = args.scale.split('.')
 args.scale = math.floor(float(strscale[0]))
@@ -86,7 +88,18 @@ args.float_scale = float(strscale[1]) / 10
 
 utility.init_model(args)
 
+
 args.scale = [pow(2, s+1) for s in range(int(np.log2(args.scale)))]
+
+
+# if args.scale=='':
+#     import numpy as np
+#     #args.scale = np.linspace(1.1,4,30)
+#     args.scale = [1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0]
+#     #print(args.scale)
+# else:
+#     args.scale = list(map(lambda x: float(x), args.scale.split('+')))
+# print(args.scale)
 
 
 

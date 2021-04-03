@@ -6,6 +6,7 @@ from option import args
 import math
 
 def make_model(opt):
+    print(DRN(opt))
     return DRN(opt)
 
 class Pos2Weight(nn.Module):
@@ -144,8 +145,7 @@ class DRN(nn.Module):
             x = torch.cat((x, copies[self.phase - idx - 1]), 1)
             # output sr imgs
             sr = self.tail[idx + 1](x)
-            # sr = self.add_mean(sr)
-        
+            
         local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
         up_x = self.repeat_x(sr)     ### the output is (N*r*r,inC,inH,inW)
 
@@ -164,6 +164,6 @@ class DRN(nn.Module):
         out = self.add_mean(out)
         
         results.append(out)
-        # results.append(sr)
+        # # results.append(sr)
 
         return results
