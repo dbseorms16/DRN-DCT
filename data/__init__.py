@@ -6,12 +6,11 @@ from torch.utils.data import DataLoader
 
 class Data:
     def __init__(self, args):
-
-
-
         self.loader_train = None
         if not args.test_only:
+            # importlib module - import_module function ("package name")
             module_train = import_module('data.' + args.data_train.lower())
+            # getattr(object, attribute) // getattr(c, 'x') = c.x
             trainset = getattr(module_train, args.data_train)(args)
             self.loader_train = DataLoader(
                 trainset,

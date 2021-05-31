@@ -1,4 +1,11 @@
 # Default ignored files
+*.pt
+/*.pt
+*.txt
+*.jpg
+*.png
+*.pdf
+
 /shelf/
 /workspace.xml
 /*.pyc
@@ -13,3 +20,6 @@
 */__pycache__
 /__pycache__
 /.idea
+/dataset
+/experiments
+/*.yaml

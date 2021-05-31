@@ -47,7 +47,7 @@ class Model(nn.Module):
             self.model = nn.DataParallel(self.model, range(opt.n_GPUs))
             self.dual_models = dataparallel(self.dual_models, range(opt.n_GPUs))
 
-        self.load(opt.pre_train, opt.pre_train_dual, cpu=opt.cpu)
+        self.load(opt.pre_train, opt.pre_train_dual, opt.pre_train_metasr, cpu=opt.cpu)
 
         if not opt.test_only:
             print(self.model, file=ckp.log_file)
@@ -110,16 +110,39 @@ class Model(nn.Module):
                 os.path.join(path, 'model',args.data_train +'_dual_best_x'+str(args.scale[len(args.scale)-1])+'.pt')
             )
 
-    def load(self, pre_train='.', pre_train_dual='.', cpu=False):
+    def load(self, pre_train='.', pre_train_dual='.', pre_train_metasr='.', cpu=False):
         if cpu:
             kwargs = {'map_location': lambda storage, loc: storage}
         else:
             kwargs = {}
         #### load primal model ####
+
+        weight4 = torch.load(pre_train, **kwargs)
+       
+        # for name in dual_models[0]:
+        #     dual_models[0][name].requires_grad = False
+
+
+        # print(weight4['P2W.0.bias'].requires_grad)
+        # metasr = torch.load(pre_train_metasr, **kwargs)[0]
+        # p2w = []
+        # for param in metasr:
+        #     paramsplit = param.split('.')
+        #     if paramsplit == 'P2W':
+        #         p2w.append(param)
+
+        # p2weight={}
+        # for p2 in p2w:
+        #     p2weight[p2] = metasr[0][p2]
+            # p2weight.update(metasr[p2])
+        # new.update(p2weight)
+
+        # param.requires_grad = False  
+
         if pre_train != '.':
             print('Loading model from {}'.format(pre_train))
             self.get_model().load_state_dict(
-                torch.load(pre_train, **kwargs),
+                weight4,
                 strict=False
             )
         #### load dual model ####

@@ -1,9 +1,23 @@
----------------------------Train-------------------------------
+\---------------------------Train-------------------------------
 #커맨드 입력 형식
 python main.py --data_dir [root data dir] --scale [scale] --data_train [train data dir] --data_test [test data dir] --model [DRN-L|DRN-S]  --save [save dir]  --save_results
 
 ex)
-python main.py --data_dir ./dataset --scale 4 --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+python main.py --data_dir ./dataset --scale 4.0 --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.0 --model DRN-L --pre_train_metasr  ./trained_models/face_data_best_x4.pt  --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+
+
+python main.py --data_dir ./dataset --scale 2.9 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+
+
+python main.py --data_dir ./dataset --scale 2.7  --pre_train  ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+
+python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
+
+
 
  -위와 같이 입력하면 4배율의 scale,  ./dataset/face_data의 데이터를 훈련데이터로, ./dataset/benchmark/face_test를 테스트 데이터로 사용하여 훈련을 진행합니다.  --save_results는 결과를 저장하고 싶을때 사용합니다.
 훈련을 이어서 진행하고 싶을 때 는 아래 Test 명령어에서 --pre_train, --pre_trained_dual 옵션을 사용하여 이전 훈련 모델을 불러올 수 있습니다.
@@ -17,7 +31,27 @@ python main.py --data_dir ./dataset --scale 4 --data_train face_data --data_test
 python main.py --data_dir [root data dir] --save [save dir] --data_test [test data dir] --scale [scale] --model [DRN-L/DRN-S] --pre_train [model path] --pre_train_dual [dual model path] --test_only --save_result
 
 ex)
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.0 --model DRN-L --pre_train_metasr  ./trained_models/model_1000.pt --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.3 --model DRN-L --pre_train_metasr  ./trained_models/face_data_best_x4.pt  --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.3 --model DRN-L  --pre_train  ./trained_models/face_data_best_x4.pt --pre_train_dual  ./trained_models/face_data_dual_best_x4.pt --test_only --save_results
+
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2_replace.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.9 --model DRN-L --pre_train ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2_replace.pt --test_only --save_results
+
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/face_data_best_x2.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/model/2.9/face_data_best_x2.pt --pre_train_dual  ./experiments/model/2.9/face_data_dual_best_x2.pt --test_only --save_results
+
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/m2.7/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.7/face_data_dual_best_x2.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/d2.7new/face_data_best_x2.pt --pre_train_dual  ./experiments/d2.7new/face_data_dual_best_x2.pt --test_only --save_results
+
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/m2.1/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.1/face_data_dual_best_x2.pt --test_only --save_results
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/d2.1new/face_data_best_x2.pt --pre_train_dual  ./experiments/d2.1new/face_data_dual_best_x2.pt --test_only --save_results
 
   -위와 같이 커맨더 창에 입력하면 ./experiments/result 에 테스트 결과가 저장되고 테스트셋의 경로는 ./dataset/benchmark/face_test 가 됩니다. 이 때 이용하는 모델은 ./trained_models/face_trained_x4.pt와 ./trained_models/face_trained_dual_x4.pt입니다.  --test_only는 훈련이 아닌 테스트만 진행할 때 입력하는 명령어이고, 
 

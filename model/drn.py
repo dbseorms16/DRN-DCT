@@ -6,7 +6,6 @@ from option import args
 import math
 
 def make_model(opt):
-    print(DRN(opt))
     return DRN(opt)
 
 class Pos2Weight(nn.Module):
@@ -19,9 +18,9 @@ class Pos2Weight(nn.Module):
             nn.Linear(3,256),
             nn.ReLU(inplace=True),
             nn.Linear(256,self.kernel_size*self.kernel_size*self.inC*self.outC)
+            # 3 * 3 * 이미지 피쳐 32 * RGB 3
         )
     def forward(self,x):
-
         output = self.meta_block(x)
         return output
 class DRN(nn.Module):
@@ -99,7 +98,7 @@ class DRN(nn.Module):
                 conv(n_feats * pow(2, p), opt.n_colors, kernel_size)
             )
         self.tail = nn.ModuleList(tail)
-        self.P2W = Pos2Weight(inC=opt.n_colors)
+        self.P2W = Pos2Weight(inC=32)
         self.add_mean = common.MeanShift(opt.rgb_range, rgb_mean, rgb_std, 1)
     
     def repeat_x(self, x):
@@ -143,11 +142,13 @@ class DRN(nn.Module):
             #     x =nnf.interpolate(x, size=(len(copy[0][0]),len(copy[0][0][0])), mode='bicubic', align_corners=False)
 
             x = torch.cat((x, copies[self.phase - idx - 1]), 1)
-            # output sr imgs
+            # output sr imgs    
             sr = self.tail[idx + 1](x)
+            results.append(sr)
+
             
         local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
-        up_x = self.repeat_x(sr)     ### the output is (N*r*r,inC,inH,inW)
+        up_x = self.repeat_x(x)     ### the output is (N*r*r,inC,inH,inW)
 
         # N*r^2 x [inC * kH * kW] x [inH * inW]
         cols = nn.functional.unfold(up_x, 3,padding=1)
@@ -162,8 +163,7 @@ class DRN(nn.Module):
         out = out.contiguous().view(sr.size(0),scale_int,scale_int,3,sr.size(2),sr.size(3)).permute(0,3,4,1,5,2)
         out = out.contiguous().view(sr.size(0),3, scale_int*sr.size(2),scale_int*sr.size(3))
         out = self.add_mean(out)
-        
         results.append(out)
-        # # results.append(sr)
+        # results.append(sr)
 
         return results

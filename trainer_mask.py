@@ -174,17 +174,15 @@ class Trainer():
             scale_coord_map = scale_coord_map.to("cuda:0")
 
             sr = self.model(lr[0], scale_coord_map)
+            re_sr = torch.masked_select(sr[-1],mask.to("cuda:0"))
+            re_sr= re_sr.contiguous().view(N, C,outH,outW)
 
-            srDct = dct_2d(sr[-1])
-            srDct = srDct[:, :, 0:int(outH), 0:int(outW)]
-            srDct = srDct * ((scale*scale)/16)
-            re_sr  = idct_2d(srDct)
+            # srDct = dct_2d(sr[-1])
+            # srDct = srDct[:, :, 0:int(outH), 0:int(outW)]
+            # srDct = srDct * ((scale*scale)/16)
+            # re_sr  = idct_2d(srDct)
 
-            # re_sr = torch.nn.functional.interpolate(sr[-1], (outH, outW),
-            #                  mode='bilinear',align_corners=True )
-            
-            # re_sr= re_sr.contiguous().view(N, C,outH,outW)
-            # re_sr = utility.quantize(re_sr, self.opt.rgb_range).type(torch.int)
+        
             sr[-1] = re_sr
 
 
@@ -367,17 +365,18 @@ class Trainer():
                     sr = self.model(lr[0], scale_coord_map)
                     if isinstance(sr, list): sr = sr[-1]
 
-                    print(sr.size())                    
-                    srDct = dct_2d(sr)
-                    srDct = srDct[:, :, 0:int(outH), 0:int(outW)] * ((scale*scale)/16)
-                    re_sr  = idct_2d(srDct)
+                    re_sr = torch.masked_select(sr,mask.to("cuda:0"))
+
+                    
+                    # srDct = dct_2d(sr)
+                    # srDct = srDct[:, :, 0:int(outH), 0:int(outW)] * ((scale*scale)/16)
+                    # re_sr  = idct_2d(srDct)
 
                     re_sr= re_sr.contiguous().view(N, C,outH,outW)
                     re_sr = utility.quantize(re_sr, self.opt.rgb_range)
                     sr = re_sr
 
                     timer_test.hold()
-               
 
                     if not no_eval:
                         psnr = utility.calc_psnr(

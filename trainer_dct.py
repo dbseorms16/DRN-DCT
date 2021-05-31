@@ -367,7 +367,8 @@ class Trainer():
                     sr = self.model(lr[0], scale_coord_map)
                     if isinstance(sr, list): sr = sr[-1]
 
-                    print(sr.size())                    
+
+                    
                     srDct = dct_2d(sr)
                     srDct = srDct[:, :, 0:int(outH), 0:int(outW)] * ((scale*scale)/16)
                     re_sr  = idct_2d(srDct)
@@ -377,7 +378,27 @@ class Trainer():
                     sr = re_sr
 
                     timer_test.hold()
-               
+                    # sr = sr.contiguous().view(N,C,int(H*4),int(W*4))
+                    # sr = utility.quantize(sr, self.opt.rgb_range)
+
+                    # R = sr[0, 0, :, :].type(torch.int)
+                    # G = sr[0, 1, :, :].type(torch.int)
+                    # B = sr[0, 2, :, :].type(torch.int)
+
+                    # DR = dct_2d(R)
+                    # DG = dct_2d(G)
+                    # DB = dct_2d(B)
+
+                    # CR = DR[:int(outH), :int(outW)] * ((scale*scale)/16)
+                    # CG = DG[:int(outH), :int(outW)] * ((scale*scale)/16)
+                    # CB = DB[:int(outH), :int(outW)] * ((scale*scale)/16)
+
+
+                    # IR  = idct_2d(CR).type(torch.int)
+                    # IB  = idct_2d(CG).type(torch.int)
+                    # IG  = idct_2d(CB).type(torch.int)
+
+                    # sr_dct = torch.stack((IR, IB, IG), dim=2).permute(2,0,1).unsqueeze(0)
 
                     if not no_eval:
                         psnr = utility.calc_psnr(

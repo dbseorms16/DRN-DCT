@@ -25,7 +25,7 @@ parser.add_argument('--data_range', type=str, default='',
 #                     help='super resolution scale')
 parser.add_argument('--scale', type=str, default='2.0',
                     help='super resolution scale')
-parser.add_argument('--patch_size', type=int, default=12,
+parser.add_argument('--patch_size', type=int, default=80,
                     help='output patch size')
 parser.add_argument('--rgb_range', type=int, default=255,
                     help='maximum value of RGB')
@@ -48,7 +48,7 @@ parser.add_argument('--test_every', type=int, default =10000,
                     help='do test per every N batches')
 parser.add_argument('--epochs', type=int, default=1000,
                     help='number of epochs to train')
-parser.add_argument('--batch_size', type=int, default=8,
+parser.add_argument('--batch_size', type=int, default=1,
                     help='input batch size for training')
 parser.add_argument('--self_ensemble', action='store_true',
                     help='use self-ensemble method for test')

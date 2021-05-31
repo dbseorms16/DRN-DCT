@@ -98,21 +98,17 @@ class SRData(data.Dataset):
         scale = self.scale
         multi_scale = len(self.scale) > 1
         if self.train:
-            lr, hr = common.get_patch(
-                lr,
-                hr,
-                patch_size=self.args.patch_size,
-                scale=scale,
-                multi_scale=multi_scale
-            )
-            if not self.args.no_augment:
-                lr, hr = common.augment(lr, hr)
+            if isinstance(lr, list):
+                ih, iw = lr[0].shape[:2]
+            else:
+                ih, iw = lr.shape[:2]
+            hr = hr
         else:
             if isinstance(lr, list):
                 ih, iw = lr[0].shape[:2]
             else:
                 ih, iw = lr.shape[:2]
-            hr = hr[0:ih * scale[0], 0:iw * scale[0]]
+            hr = hr
             
         return lr, hr
 
