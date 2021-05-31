@@ -183,6 +183,7 @@ class DRN(nn.Module):
             tail.append(
                 conv(n_feats * pow(2, p), opt.n_colors, kernel_size)
             )
+        self.tail = nn.ModuleList(tail)
 
         self.add_mean = common.MeanShift(opt.rgb_range, rgb_mean, rgb_std, 1)
 
