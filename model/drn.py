@@ -1,30 +1,22 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as nnf
 from model import common
-from option import args
-import math
+
 
 def make_model(opt):
     return DRN(opt)
+
+
 class DRN(nn.Module):
     def __init__(self, opt, conv=common.default_conv):
         super(DRN, self).__init__()
         self.opt = opt
         self.scale = opt.scale
-        #add float_scale
-        self.float_scale = opt.float_scale
-        #phase is n about 2^n 
         self.phase = len(opt.scale)
         n_blocks = opt.n_blocks
         n_feats = opt.n_feats
         kernel_size = 3
-        sf= 0
-        if (self.scale[0]%2) ==0:
-            sf =2
-        elif self.scale[0] ==3:
-            sf =3
-        print('DRN scale >> '+str(sf))
+
         act = nn.ReLU(True)
 
         self.upsample = nn.Upsample(scale_factor=max(opt.scale),
@@ -37,8 +29,8 @@ class DRN(nn.Module):
         self.head = conv(opt.n_colors, n_feats, kernel_size)
 
         self.down = [
-            common.DownBlock(opt, sf, n_feats * pow(2, p), n_feats * pow(2, p), n_feats * pow(2, p + 1)
-                                  ) for p in range(self.phase)
+            common.DownBlock(opt, 2, n_feats * pow(2, p), n_feats * pow(2, p), n_feats * pow(2, p + 1)
+            ) for p in range(self.phase)
         ]
 
         self.down = nn.ModuleList(self.down)
@@ -56,16 +48,16 @@ class DRN(nn.Module):
             ) for _ in range(n_blocks)
         ])
 
-        # The first upsample block
+        # The fisrt upsample block
         up = [[
-            common.Upsampler(conv, sf, n_feats * pow(2, self.phase), act=False),
+            common.Upsampler(conv, 2, n_feats * pow(2, self.phase), act=False),
             conv(n_feats * pow(2, self.phase), n_feats * pow(2, self.phase - 1), kernel_size=1)
         ]]
 
         # The rest upsample blocks
         for p in range(self.phase - 1, 0, -1):
             up.append([
-                common.Upsampler(conv, sf, 2 * n_feats * pow(2, p), act=False),
+                common.Upsampler(conv, 2, 2 * n_feats * pow(2, p), act=False),
                 conv(2 * n_feats * pow(2, p), n_feats * pow(2, p - 1), kernel_size=1)
             ])
 
@@ -82,9 +74,10 @@ class DRN(nn.Module):
                 conv(n_feats * pow(2, p), opt.n_colors, kernel_size)
             )
         self.tail = nn.ModuleList(tail)
+
         self.add_mean = common.MeanShift(opt.rgb_range, rgb_mean, rgb_std, 1)
-    
-    def forward(self, x, pos_mat):
+
+    def forward(self, x):
         # upsample x to target sr size
         x = self.upsample(x)
 
@@ -105,12 +98,12 @@ class DRN(nn.Module):
         for idx in range(self.phase):
             # upsample to SR features
             x = self.up_blocks[idx](x)
-            
-
+            # concat down features and upsample features
             x = torch.cat((x, copies[self.phase - idx - 1]), 1)
-            # output sr imgs    
+            # output sr imgs
             sr = self.tail[idx + 1](x)
-            results.append(sr)
+            sr = self.add_mean(sr)
 
+            results.append(sr)
 
         return results
