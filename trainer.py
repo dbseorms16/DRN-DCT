@@ -16,99 +16,7 @@ import matplotlib.pyplot as plt
 import copy
 import math
 import imageio
-def dct_2d( x, norm=None):
 
-    X1 = dct(x, norm=norm)
-    X2 = dct(X1.transpose(-1, -2), norm=norm)
-    return X2.transpose(-1, -2)
-
-def idct_2d( X, norm=None):
-
-    x1 = idct(X, norm=norm)
-    x2 = idct(x1.transpose(-1, -2), norm=norm)
-    return x2.transpose(-1, -2)
-    
-
-def _rfft( x, signal_ndim=1, onesided=True):
-    # b = torch.Tensor([[1,2,3,4,5],[2,3,4,5,6]])
-    # b = torch.Tensor([[1,2,3,4,5,6],[2,3,4,5,6,7]])
-    # torch 1.8.0 torch.fft.rfft to torch 1.5.0 torch.rfft as signal_ndim=1
-    # written by mzero
-    odd_shape1 = (x.shape[1] % 2 != 0)
-    x = torch.fft.rfft(x)
-    x = torch.cat([x.real.unsqueeze(dim=2), x.imag.unsqueeze(dim=2)], dim=2)
-    if onesided == False:
-        _x = x[:, 1:, :].flip(dims=[1]).clone() if odd_shape1 else x[:, 1:-1, :].flip(dims=[1]).clone()
-        _x[:,:,1] = -1 * _x[:,:,1]
-        x = torch.cat([x, _x], dim=1)
-    return x
-
-def _irfft( x, signal_ndim=1, onesided=True):
-    # b = torch.Tensor([[1,2,3,4,5],[2,3,4,5,6]])
-    # b = torch.Tensor([[1,2,3,4,5,6],[2,3,4,5,6,7]])
-    # torch 1.8.0 torch.fft.irfft to torch 1.5.0 torch.irfft as signal_ndim=1
-    # written by mzero
-    if onesided == False:
-        res_shape1 = x.shape[1]
-        x = x[:,:(x.shape[1] // 2 + 1),:]
-        x = torch.complex(x[:,:,0].float(), x[:,:,1].float())
-        x = torch.fft.irfft(x, n=res_shape1)
-    else:
-        x = torch.complex(x[:,:,0].float(), x[:,:,1].float())
-        x = torch.fft.irfft(x)
-    return x
-
-def dct(x, norm=None):
-    x_shape = x.shape
-    N = x_shape[-1]
-    x = x.contiguous().view(-1, N)
-
-    v = torch.cat([x[:, ::2], x[:, 1::2].flip([1])], dim=1)
-
-    Vc = _rfft(v, 1, onesided=False)
-
-    k = - torch.arange(N, dtype=x.dtype, device=x.device)[None, :] * np.pi / (2 * N)
-    W_r = torch.cos(k)
-    W_i = torch.sin(k)
-
-    V = Vc[:, :, 0] * W_r - Vc[:, :, 1] * W_i
-
-    if norm == 'ortho':
-        V[:, 0] /= np.sqrt(N) * 2
-        V[:, 1:] /= np.sqrt(N / 2) * 2
-
-    V = 2 * V.view(*x_shape)
-
-    return V
-
-def idct(X, norm=None):
-    x_shape = X.shape
-    N = x_shape[-1]
-
-    X_v = X.contiguous().view(-1, x_shape[-1]) / 2
-
-    if norm == 'ortho':
-        X_v[:, 0] *= np.sqrt(N) * 2
-        X_v[:, 1:] *= np.sqrt(N / 2) * 2
-
-    k = torch.arange(x_shape[-1], dtype=X.dtype, device=X.device)[None, :] * np.pi / (2 * N)
-    W_r = torch.cos(k)
-    W_i = torch.sin(k)
-
-    V_t_r = X_v
-    V_t_i = torch.cat([X_v[:, :1] * 0, -X_v.flip([1])[:, :-1]], dim=1)
-
-    V_r = V_t_r * W_r - V_t_i * W_i
-    V_i = V_t_r * W_i + V_t_i * W_r
-
-    V = torch.cat([V_r.unsqueeze(2), V_i.unsqueeze(2)], dim=2)
-
-    v = _irfft(V, 1, onesided=False)
-    x = v.new_zeros(v.shape)
-    x[:, ::2] += v[:, :N - (N // 2)]
-    x[:, 1::2] += v.flip([1])[:, :N // 2]
-
-    return x.view(*x_shape)
 class Trainer():
     def __init__(self, opt, loader, my_model, my_loss, ckp):
         self.opt = opt
@@ -165,28 +73,7 @@ class Trainer():
                 self.dual_optimizers[i].zero_grad()
 
             # forward
-           
-
-            N,C,H,W = lr[0].size()
-            outH,outW = int(H*scale),int(W*scale)
-
-            scale_coord_map, mask = self.input_matrix_wpn(H * int_scale,W * int_scale, res_scale)
-            scale_coord_map = scale_coord_map.to("cuda:0")
-
-            sr = self.model(lr[0], scale_coord_map)
-
-            srDct = dct_2d(sr[-1])
-            srDct = srDct[:, :, 0:int(outH), 0:int(outW)]
-            srDct = srDct * ((scale*scale)/16)
-            re_sr  = idct_2d(srDct)
-
-            # re_sr = torch.nn.functional.interpolate(sr[-1], (outH, outW),
-            #                  mode='bilinear',align_corners=True )
-            
-            # re_sr= re_sr.contiguous().view(N, C,outH,outW)
-            # re_sr = utility.quantize(re_sr, self.opt.rgb_range).type(torch.int)
-            sr[-1] = re_sr
-
+            sr = self.model(lr[0])
 
             sr2lr = []
             for i in range(len(self.dual_models)):
@@ -243,83 +130,6 @@ class Trainer():
         self.loss.end_log(len(self.loader_train))
         self.error_last = self.loss.log[-1, -1]
         self.step()
-    def input_matrix_wpn(self,inH, inW, scale, add_scale=True):
-        '''
-        inH, inW: the size of the feature maps
-        scale: is the upsampling times
-        '''
-        #### mask records which pixel is invalid, 1 valid or o invalid
-        #### h_offset and w_offset caculate the offset to generate the input matrix
-        outH, outW = int(scale*inH), int(scale*inW)
-        scale_int = int(math.ceil(scale))
-        h_offset = torch.ones(inH, scale_int, 1)
-        mask_h = torch.zeros(inH,  scale_int, 1)
-        w_offset = torch.ones(1, inW, scale_int)
-        mask_w = torch.zeros(1, inW, scale_int)
-        if add_scale:
-            scale_mat = torch.zeros(1,1)
-            scale_mat[0,0] = 1.0/scale
-            #res_scale = scale_int - scale
-            #scale_mat[0,scale_int-1]=1-res_scale
-            #scale_mat[0,scale_int-2]= res_scale
-            scale_mat = torch.cat([scale_mat]*(inH*inW*(scale_int**2)),0)  ###(inH*inW*scale_int**2, 4)
-            
-        ####projection  coordinate  and caculate the offset 
-        h_project_coord = torch.arange(0,outH, 1).float().mul(1.0/scale)
-        int_h_project_coord = torch.floor(h_project_coord)
-
-        offset_h_coord = h_project_coord - int_h_project_coord
-        int_h_project_coord = int_h_project_coord.int()
-
-        w_project_coord = torch.arange(0, outW, 1).float().mul(1.0/scale)
-        int_w_project_coord = torch.floor(w_project_coord)
-
-        offset_w_coord = w_project_coord - int_w_project_coord
-        int_w_project_coord = int_w_project_coord.int()
-
-        ####flag for   number for current coordinate LR image
-        flag = 0
-        number = 0
-        for i in range(outH):
-            if int_h_project_coord[i] == number:
-                h_offset[int_h_project_coord[i], flag, 0] = offset_h_coord[i]
-                mask_h[int_h_project_coord[i], flag,  0] = 1
-                flag += 1
-            else:
-                h_offset[int_h_project_coord[i], 0, 0] = offset_h_coord[i]
-                mask_h[int_h_project_coord[i], 0, 0] = 1
-                number += 1
-                flag = 1
-
-        flag = 0
-        number = 0
-        for i in range(outW):
-            if int_w_project_coord[i] == number:
-                w_offset[0, int_w_project_coord[i], flag] = offset_w_coord[i]
-                mask_w[0, int_w_project_coord[i], flag] = 1
-                flag += 1
-            else:
-                w_offset[0, int_w_project_coord[i], 0] = offset_w_coord[i]
-                mask_w[0, int_w_project_coord[i], 0] = 1
-                number += 1
-                flag = 1
-        ## the size is scale_int* inH* (scal_int*inW)
-        h_offset_coord = torch.cat([h_offset] * (scale_int * inW), 2).view(-1, scale_int * inW, 1)
-        w_offset_coord = torch.cat([w_offset] * (scale_int * inH), 0).view(-1, scale_int * inW, 1)
-        ####
-        mask_h = torch.cat([mask_h] * (scale_int * inW), 2).view(-1, scale_int * inW, 1)
-        mask_w = torch.cat([mask_w] * (scale_int * inH), 0).view(-1, scale_int * inW, 1)
-
-        pos_mat = torch.cat((h_offset_coord, w_offset_coord), 2)
-        mask_mat = torch.sum(torch.cat((mask_h,mask_w),2),2).view(scale_int*inH,scale_int*inW)
-        mask_mat = mask_mat.eq(2)
-        pos_mat = pos_mat.contiguous().view(1, -1,2)
-        if add_scale:
-            pos_mat = torch.cat((scale_mat.view(1,-1,1), pos_mat),2)
-        # print('pos_mat')
-        # print(pos_mat)
-        # print(inW,inH)
-        return pos_mat,mask_mat ##outH*outW*2 outH=scale_int*inH , outW = scale_int *inW
     
     def test(self):
         epoch = self.scheduler.last_epoch
@@ -347,34 +157,15 @@ class Trainer():
                         lr, = self.prepare(lr)
 
 
-                    # lr[0] = torch.rand(1,3,2,2)
                     N,C,H,W = lr[0].size()
-                    # print(lr[0].size())
-
                     outH,outW = int(H*scale),int(W*scale)
-                    #_,_,outH,outW = hr.size()
-                    #timer_test.tic()
-
-                    scale_coord_map, mask = self.input_matrix_wpn(H * int_scale,W * int_scale, res_scale)
-                    #position, mask = self.pos_matrix(H,W,self.args.scale[idx_scale])
-                    #print(timer_test.toc())
-                    mask = mask.to("cuda:0")
-                    scale_coord_map = scale_coord_map.to("cuda:0")
                     timer_test.tic()
-                    # print(mask.size())
-                    # print(outH,outW)
 
-                    sr = self.model(lr[0], scale_coord_map)
+                    sr = self.model(lr[0])
                     if isinstance(sr, list): sr = sr[-1]
 
-                    print(sr.size())                    
-                    srDct = dct_2d(sr)
-                    srDct = srDct[:, :, 0:int(outH), 0:int(outW)] * ((scale*scale)/16)
-                    re_sr  = idct_2d(srDct)
-
-                    re_sr= re_sr.contiguous().view(N, C,outH,outW)
-                    re_sr = utility.quantize(re_sr, self.opt.rgb_range)
-                    sr = re_sr
+                    sr= sr.contiguous().view(N, C,outH,outW)
+                    sr = utility.quantize(sr, self.opt.rgb_range)
 
                     timer_test.hold()
                

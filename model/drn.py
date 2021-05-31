@@ -1,12 +1,121 @@
 import torch
 import torch.nn as nn
 from model import common
+import numpy as np
 
 
 def make_model(opt):
     return DRN(opt)
 
+class DCT(nn.Module):
+    def __init__(self, opt):
+        super(DCT, self).__init__()
+        self.int_scale = max(opt.scale)
+        self.float_scale = opt.float_scale
+        self.scale = self.int_scale + self.float_scale
+        self.res_scale = self.scale / self.int_scale
+        
 
+    def dct_2d(self, x, norm=None):
+        X1 = self.dct(x, norm=norm)
+        X2 = self.dct(X1.transpose(-1, -2), norm=norm)
+        return X2.transpose(-1, -2)
+
+    def idct_2d(self, X, norm=None):
+        x1 = self.idct(X, norm=norm)
+        x2 = self.idct(x1.transpose(-1, -2), norm=norm)
+        return x2.transpose(-1, -2)
+
+    def _rfft(self, x, signal_ndim=1, onesided=True):
+        # b = torch.Tensor([[1,2,3,4,5],[2,3,4,5,6]])
+        # b = torch.Tensor([[1,2,3,4,5,6],[2,3,4,5,6,7]])
+        # torch 1.8.0 torch.fft.rfft to torch 1.5.0 torch.rfft as signal_ndim=1
+        # written by mzero
+        odd_shape1 = (x.shape[1] % 2 != 0)
+        x = torch.fft.rfft(x)
+        x = torch.cat([x.real.unsqueeze(dim=2), x.imag.unsqueeze(dim=2)], dim=2)
+        if onesided == False:
+            _x = x[:, 1:, :].flip(dims=[1]).clone() if odd_shape1 else x[:, 1:-1, :].flip(dims=[1]).clone()
+            _x[:,:,1] = -1 * _x[:,:,1]
+            x = torch.cat([x, _x], dim=1)
+        return x
+
+    def _irfft(self, x, signal_ndim=1, onesided=True):
+        # b = torch.Tensor([[1,2,3,4,5],[2,3,4,5,6]])
+        # b = torch.Tensor([[1,2,3,4,5,6],[2,3,4,5,6,7]])
+        # torch 1.8.0 torch.fft.irfft to torch 1.5.0 torch.irfft as signal_ndim=1
+        # written by mzero
+        if onesided == False:
+            res_shape1 = x.shape[1]
+            x = x[:,:(x.shape[1] // 2 + 1),:]
+            x = torch.complex(x[:,:,0].float(), x[:,:,1].float())
+            x = torch.fft.irfft(x, n=res_shape1)
+        else:
+            x = torch.complex(x[:,:,0].float(), x[:,:,1].float())
+            x = torch.fft.irfft(x)
+        return x
+
+    def dct(self, x, norm=None):
+        x_shape = x.shape
+        N = x_shape[-1]
+        x = x.contiguous().view(-1, N)
+
+        v = torch.cat([x[:, ::2], x[:, 1::2].flip([1])], dim=1)
+
+        Vc = self._rfft(v, 1, onesided=False)
+
+        k = - torch.arange(N, dtype=x.dtype, device=x.device)[None, :] * np.pi / (2 * N)
+        W_r = torch.cos(k)
+        W_i = torch.sin(k)
+
+        V = Vc[:, :, 0] * W_r - Vc[:, :, 1] * W_i
+
+        if norm == 'ortho':
+            V[:, 0] /= np.sqrt(N) * 2
+            V[:, 1:] /= np.sqrt(N / 2) * 2
+
+        V = 2 * V.view(*x_shape)
+
+        return V
+
+    def idct(self, X, norm=None):
+        x_shape = X.shape
+        N = x_shape[-1]
+
+        X_v = X.contiguous().view(-1, x_shape[-1]) / 2
+
+        if norm == 'ortho':
+            X_v[:, 0] *= np.sqrt(N) * 2
+            X_v[:, 1:] *= np.sqrt(N / 2) * 2
+
+        k = torch.arange(x_shape[-1], dtype=X.dtype, device=X.device)[None, :] * np.pi / (2 * N)
+        W_r = torch.cos(k)
+        W_i = torch.sin(k)
+
+        V_t_r = X_v
+        V_t_i = torch.cat([X_v[:, :1] * 0, -X_v.flip([1])[:, :-1]], dim=1)
+
+        V_r = V_t_r * W_r - V_t_i * W_i
+        V_i = V_t_r * W_i + V_t_i * W_r
+
+        V = torch.cat([V_r.unsqueeze(2), V_i.unsqueeze(2)], dim=2)
+
+        v = self._irfft(V, 1, onesided=False)
+        x = v.new_zeros(v.shape)
+        x[:, ::2] += v[:, :N - (N // 2)]
+        x[:, 1::2] += v.flip([1])[:, :N // 2]
+
+        return x.view(*x_shape)
+
+    def forward(self, x):
+        N, C, H, W = x.size()
+        outH, outW = int(H*self.res_scale), int(W*self.res_scale)
+        x = self.dct_2d(x)
+        # x = x[:, :, 0:int(H*self.scale), 0:int(W*self.scale)]
+        zeroPad2d = nn.ZeroPad2d((0,int(outW - W), 0, int(outH - H))).to('cuda:0')
+        x = zeroPad2d(x)
+        x = self.idct_2d(x)
+        return x
 class DRN(nn.Module):
     def __init__(self, opt, conv=common.default_conv):
         super(DRN, self).__init__()
@@ -16,6 +125,7 @@ class DRN(nn.Module):
         n_blocks = opt.n_blocks
         n_feats = opt.n_feats
         kernel_size = 3
+        self.dct = DCT(opt)
 
         act = nn.ReLU(True)
 
@@ -103,7 +213,8 @@ class DRN(nn.Module):
             # output sr imgs
             sr = self.tail[idx + 1](x)
             sr = self.add_mean(sr)
-
+            sr = self.dct(sr)
             results.append(sr)
+        
 
         return results
