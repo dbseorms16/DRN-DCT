@@ -56,7 +56,7 @@ class Trainer():
         self.loss.start_log()
         for name, param in self.model.named_parameters():
             splitname = name.split('.')
-            if splitname[1] != 'P2W':
+            if splitname[1] != 'SRCNN':
                 param.requires_grad = False
 
 
@@ -86,9 +86,9 @@ class Trainer():
             loss_primary += self.loss(sr[0], lr[0])
             
             # compute dual loss
-            loss_dual = self.loss(sr2lr[0], lr[0])
-            for i in range(1, len(self.scale)):
-                loss_dual += self.loss(sr2lr[i], lr[i])
+            # loss_dual = self.loss(sr2lr[0], lr[0])
+            # for i in range(1, len(self.scale)):
+            #     loss_dual += self.loss(sr2lr[i], lr[i])
 
             # compute average loss
             # average_feat =(sr[-1]+fflip_sr[-1])/2
@@ -102,7 +102,7 @@ class Trainer():
             #     loss_flip+= self.loss(sr[i], fflip_sr[i])
 
             # compute total loss
-            loss =  loss_primary+ self.opt.dual_weight * loss_dual
+            loss =  loss_primary
             # loss =  loss_primary+ self.opt.dual_weight 
             
             if loss.item() < self.opt.skip_threshold * self.error_last:

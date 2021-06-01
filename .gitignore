@@ -6,6 +6,7 @@
 *.png
 *.pdf
 
+
 /shelf/
 /workspace.xml
 /*.pyc
@@ -17,6 +18,7 @@
 
 /LICENSE
 /experiments/results/
+/experiments/confing.txt
 */__pycache__
 /__pycache__
 /.idea
@@ -24,3 +26,5 @@
 /experiments
 /*.yaml
 /trained_models/
+experiments/config.txt
+experiments/log.txt
