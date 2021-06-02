@@ -28,3 +28,5 @@
 /trained_models/
 experiments/config.txt
 experiments/log.txt
+experiments/optimizer.pt
+experiments/psnr_log.pt

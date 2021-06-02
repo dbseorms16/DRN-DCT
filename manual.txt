@@ -51,7 +51,10 @@ python main.py --data_dir ./dataset --save ./experiments --data_test face_test -
 
 
 python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/m2.1/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.1/face_data_dual_best_x2.pt --test_only --save_results
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/d2.1new/face_data_best_x2.pt --pre_train_dual  ./experiments/d2.1new/face_data_dual_best_x2.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/m2.1new/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.1new/face_data_dual_best_x2.pt --test_only --save_results
+
+python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/s2.1/face_data_best_x2.pt --pre_train_dual  ./experiments/s2.1/face_data_dual_best_x2.pt --test_only --save_results
 
   -위와 같이 커맨더 창에 입력하면 ./experiments/result 에 테스트 결과가 저장되고 테스트셋의 경로는 ./dataset/benchmark/face_test 가 됩니다. 이 때 이용하는 모델은 ./trained_models/face_trained_x4.pt와 ./trained_models/face_trained_dual_x4.pt입니다.  --test_only는 훈련이 아닌 테스트만 진행할 때 입력하는 명령어이고, 
 
