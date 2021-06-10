@@ -7,6 +7,19 @@ import numpy as np
 def make_model(opt):
     return DRN(opt)
 
+class New1(nn.Module):
+    def __init__(self, num_channels=3):
+        super(New1, self).__init__()
+        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.conv3(x)
+        return x
 class SRCNN(nn.Module):
     def __init__(self, num_channels=3):
         super(SRCNN, self).__init__()
@@ -20,6 +33,31 @@ class SRCNN(nn.Module):
         x = self.relu(self.conv2(x))
         x = self.conv3(x)
         return x
+
+class new2(nn.Module):
+    def __init__(self, num_channels=3):
+        super(SRCNN, self).__init__()
+        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
+        self.conv1x1_1 = nn.Conv2d(64, 64, kernel_size=1, padding=0)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+        self.conv1x1_2 = nn.Conv2d(32, 32, kernel_size=1, padding=0)
+        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        self.conv1x1_3 = nn.Conv2d(num_channels, num_channels, kernel_size=1, padding=0)
+        self.relu = nn.ReLU(inplace=True)
+        self.tail = nn.Conv2d(num_channels * 2 , num_channels, kernel_size=3, padding= 3 // 2)
+
+    def forward(self, x):
+        res = x
+        x = self.relu(self.conv1(x))
+        x = self.conv1x1_1(x)
+        x = self.relu(self.conv2(x))
+        x = self.conv1x1_2(x)
+        x = self.conv3(x)
+        x = self.conv1x1_3(x)
+        x = torch.cat((x, res), 1)
+        x = self.tail(x)
+        return x
+
 class DCT(nn.Module):
     def __init__(self, opt):
         super(DCT, self).__init__()
@@ -219,6 +257,7 @@ class DRN(nn.Module):
         sr = self.tail[0](x)
         sr = self.add_mean(sr)
         results = [sr]
+        flip_result = []
         for idx in range(self.phase):
             # upsample to SR features
             x = self.up_blocks[idx](x)
@@ -228,8 +267,14 @@ class DRN(nn.Module):
             sr = self.tail[idx + 1](x)
             sr = self.add_mean(sr)
             sr = self.dct(sr)
+           
             sr = self.SRCNN(sr)
-            results.append(sr)
-        
 
-        return results
+             #add flip
+            flipsr = torch.fliplr(sr)
+            flipsr = self.SRCNN(flipsr)
+            
+            results.append(sr)
+            flip_result.append(flipsr)
+
+        return results, flip_result
