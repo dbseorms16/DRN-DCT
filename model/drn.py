@@ -7,6 +7,7 @@ import numpy as np
 def make_model(opt):
     return DRN(opt)
 
+
 class New1(nn.Module):
     def __init__(self, num_channels=3):
         super(New1, self).__init__()
@@ -20,23 +21,23 @@ class New1(nn.Module):
         x = self.relu(self.conv2(x))
         x = self.conv3(x)
         return x
-class SRCNN(nn.Module):
-    def __init__(self, num_channels=3):
-        super(SRCNN, self).__init__()
-        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
-        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
-        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
-        self.relu = nn.ReLU(inplace=True)
+# class SRCNN(nn.Module):
+#     def __init__(self, num_channels=3):
+#         super(SRCNN, self).__init__()
+#         self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
+#         self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+#         self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+#         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.relu(self.conv2(x))
-        x = self.conv3(x)
-        return x
+#     def forward(self, x):
+#         x = self.relu(self.conv1(x))
+#         x = self.relu(self.conv2(x))
+#         x = self.conv3(x)
+#         return x
 
 class new2(nn.Module):
     def __init__(self, num_channels=3):
-        super(SRCNN, self).__init__()
+        super(new2, self).__init__()
         self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
         self.conv1x1_1 = nn.Conv2d(64, 64, kernel_size=1, padding=0)
         self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
@@ -49,11 +50,31 @@ class new2(nn.Module):
     def forward(self, x):
         res = x
         x = self.relu(self.conv1(x))
-        x = self.conv1x1_1(x)
         x = self.relu(self.conv2(x))
-        x = self.conv1x1_2(x)
         x = self.conv3(x)
-        x = self.conv1x1_3(x)
+        x = torch.cat((x, res), 1)
+        x = self.tail(x)
+        return x
+
+class SRCNN(nn.Module):
+    def __init__(self, opt, num_channels=3, conv=common.default_conv):
+        super(SRCNN, self).__init__()
+        self.opt = opt
+        self.n_feats = opt.n_feats
+        kernel_size = 3
+        act = nn.ReLU(True)
+
+        self.RCAB = common.RCAB(conv, self.n_feats * pow(2, 1), kernel_size, act=act)
+        self.conv1 = nn.Conv2d(num_channels, 32, kernel_size=9, padding=9 // 2)
+        # self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        self.tail = nn.Conv2d(num_channels * 2 , num_channels, kernel_size=3, padding= 3 // 2)
+
+    def forward(self, x):
+        res = x
+        x = self.conv1(x)
+        x = self.RCAB(x)
+        x = self.conv3(x)
         x = torch.cat((x, res), 1)
         x = self.tail(x)
         return x
@@ -167,6 +188,7 @@ class DCT(nn.Module):
         x = zeroPad2d(x)
         x = self.idct_2d(x)
         return x
+
 class DRN(nn.Module):
     def __init__(self, opt, conv=common.default_conv):
         super(DRN, self).__init__()
@@ -177,7 +199,7 @@ class DRN(nn.Module):
         n_feats = opt.n_feats
         kernel_size = 3
         self.dct = DCT(opt)
-        self.SRCNN = SRCNN()
+        self.SRCNN = SRCNN(opt)
 
         act = nn.ReLU(True)
 
@@ -257,7 +279,6 @@ class DRN(nn.Module):
         sr = self.tail[0](x)
         sr = self.add_mean(sr)
         results = [sr]
-        flip_result = []
         for idx in range(self.phase):
             # upsample to SR features
             x = self.up_blocks[idx](x)
@@ -269,12 +290,6 @@ class DRN(nn.Module):
             sr = self.dct(sr)
            
             sr = self.SRCNN(sr)
-
-             #add flip
-            flipsr = torch.fliplr(sr)
-            flipsr = self.SRCNN(flipsr)
-            
             results.append(sr)
-            flip_result.append(flipsr)
 
-        return results, flip_result
+        return results

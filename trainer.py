@@ -73,31 +73,19 @@ class Trainer():
                 self.dual_optimizers[i].zero_grad()
 
             # forward
-            sr, filpsr = self.model(lr[0])
+            sr = self.model(lr[0])
 
-            sr2lr = []
-            for i in range(len(self.dual_models)):
-                sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
-                sr2lr.append(sr2lr_i)
+            # sr2lr = []
+            # for i in range(len(self.dual_models)):
+            #     sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
+            #     sr2lr.append(sr2lr_i)
 
             # compute primary loss
             ##여기서 sr사이즈 hr사이즈
             loss_primary = self.loss(sr[-1], hr)
             #flip
-            loss_primary += self.loss(torch.fliplr(filpsr[-1]), hr)
             loss_primary += self.loss(sr[0], lr[0])
             
-            # compute dual loss
-            # loss_dual = self.loss(sr2lr[0], lr[0])
-            # for i in range(1, len(self.scale)):
-            #     loss_dual += self.loss(sr2lr[i], lr[i])
-
-            # compute average loss
-            # average_feat =(sr[-1]+fflip_sr[-1])/2
-            # loss_average = self.loss(average_feat, hr)
-
-            
-
             #copute flip loss
             loss_flip =0
             # for i in range(0, len(sr)):
@@ -163,7 +151,7 @@ class Trainer():
                     outH,outW = int(H*scale),int(W*scale)
                     timer_test.tic()
 
-                    sr, filpsr = self.model(lr[0])
+                    sr = self.model(lr[0])
                     if isinstance(sr, list): sr = sr[-1]
 
                     sr= sr.contiguous().view(N, C,outH,outW)
