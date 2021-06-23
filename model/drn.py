@@ -64,18 +64,28 @@ class SRCNN(nn.Module):
         kernel_size = 3
         act = nn.ReLU(True)
 
-        self.RCAB = common.RCAB(conv, self.n_feats * pow(2, 1), kernel_size, act=act)
+        self.RCAB1 = common.RCAB(conv, self.n_feats * pow(2, 1), kernel_size, act=act)
+        self.RCAB2 = common.RCAB(conv, 64, kernel_size, act=act)
+        self.RCAB3 = common.RCAB(conv, 128, kernel_size, act=act)
         self.conv1 = nn.Conv2d(num_channels, 32, kernel_size=9, padding=9 // 2)
-        # self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+        self.conv2 = nn.Conv2d(256, 32, kernel_size=5, padding=5 // 2)
         self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
-        self.tail = nn.Conv2d(num_channels * 2 , num_channels, kernel_size=3, padding= 3 // 2)
+        self.tail = nn.Conv2d(num_channels , num_channels, kernel_size=3, padding= 3 // 2)
 
     def forward(self, x):
         res = x
         x = self.conv1(x)
-        x = self.RCAB(x)
+        copyx = x
+        x = self.RCAB1(x)
+        x = torch.cat((x, copyx), 1)
+        x = self.RCAB2(x)
+        copyx2 = x
+        x = torch.cat((x, copyx2), 1)
+        x = self.RCAB3(x)
+        copyx3 = x
+        x = torch.cat((x, copyx3), 1)
+        x = self.conv2(x)
         x = self.conv3(x)
-        x = torch.cat((x, res), 1)
         x = self.tail(x)
         return x
 
