@@ -244,18 +244,18 @@ class Trainer():
                     timer_test.hold()
                
 
-                    # if not no_eval:
-                    #     psnr = utility.calc_psnr(
-                    #         sr, hr, s, self.opt.rgb_range,
-                    #         benchmark=self.loader_test.dataset.benchmark
-                    #     )
+                    if not no_eval:
+                        psnr = utility.calc_psnr(
+                            sr, hr, s, self.opt.rgb_range,
+                            benchmark=self.loader_test.dataset.benchmark
+                        )
                    
                     #     # hr_numpy = hr[0].cpu().numpy().transpose(1, 2, 0)
                     #     # sr_numpy = sr[0].cpu().numpy().transpose(1, 2, 0)
                     #     # simm = utility.SSIM(hr_numpy, sr_numpy)
                     #     # eval_simm += simm
 
-                    #     eval_psnr +=psnr
+                        eval_psnr +=psnr
 
                     # save test results
                     if self.opt.save_results:

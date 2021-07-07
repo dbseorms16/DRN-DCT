@@ -91,6 +91,7 @@ args = parser.parse_args()
 strscale = args.scale.split('.')
 args.scale = math.floor(float(strscale[0]))
 args.float_scale = float(strscale[1]) / 10
+args.total_scale = args.scale + args.float_scale
 
 utility.init_model(args)
 
