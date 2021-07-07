@@ -37,7 +37,83 @@ class Trainer():
     ######by given the scale and the size of input image
     ######we caculate the input matrix for the weight prediction network
     ###### input matrix for weight prediction network
-    
+    def input_matrix_wpn(self,inH, inW, scale, add_scale=True):
+        '''
+        inH, inW: the size of the feature maps
+        scale: is the upsampling times
+        '''
+        outH, outW = int(scale*inH), int(scale*inW)
+
+        #### mask records which pixel is invalid, 1 valid or o invalid
+        #### h_offset and w_offset caculate the offset to generate the input matrix
+        scale_int = int(math.ceil(scale))
+        h_offset = torch.ones(inH, scale_int, 1)
+        mask_h = torch.zeros(inH,  scale_int, 1)
+        w_offset = torch.ones(1, inW, scale_int)
+        mask_w = torch.zeros(1, inW, scale_int)
+        if add_scale:
+            scale_mat = torch.zeros(1,1)
+            scale_mat[0,0] = 1.0/scale
+            #res_scale = scale_int - scale
+            #scale_mat[0,scale_int-1]=1-res_scale
+            #scale_mat[0,scale_int-2]= res_scale
+            scale_mat = torch.cat([scale_mat]*(inH*inW*(scale_int**2)),0)  ###(inH*inW*scale_int**2, 4)
+
+        ####projection  coordinate  and caculate the offset 
+        h_project_coord = torch.arange(0,outH, 1).float().mul(1.0/scale)
+        int_h_project_coord = torch.floor(h_project_coord)
+
+        offset_h_coord = h_project_coord - int_h_project_coord
+        int_h_project_coord = int_h_project_coord.int()
+
+        w_project_coord = torch.arange(0, outW, 1).float().mul(1.0/scale)
+        int_w_project_coord = torch.floor(w_project_coord)
+
+        offset_w_coord = w_project_coord - int_w_project_coord
+        int_w_project_coord = int_w_project_coord.int()
+
+        ####flag for   number for current coordinate LR image
+        flag = 0
+        number = 0
+        for i in range(outH):
+            if int_h_project_coord[i] == number:
+                h_offset[int_h_project_coord[i], flag, 0] = offset_h_coord[i]
+                mask_h[int_h_project_coord[i], flag,  0] = 1
+                flag += 1
+            else:
+                h_offset[int_h_project_coord[i], 0, 0] = offset_h_coord[i]
+                mask_h[int_h_project_coord[i], 0, 0] = 1
+                number += 1
+                flag = 1
+
+        flag = 0
+        number = 0
+        for i in range(outW):
+            if int_w_project_coord[i] == number:
+                w_offset[0, int_w_project_coord[i], flag] = offset_w_coord[i]
+                mask_w[0, int_w_project_coord[i], flag] = 1
+                flag += 1
+            else:
+                w_offset[0, int_w_project_coord[i], 0] = offset_w_coord[i]
+                mask_w[0, int_w_project_coord[i], 0] = 1
+                number += 1
+                flag = 1
+
+        ## the size is scale_int* inH* (scal_int*inW)
+        h_offset_coord = torch.cat([h_offset] * (scale_int * inW), 2).view(-1, scale_int * inW, 1)
+        w_offset_coord = torch.cat([w_offset] * (scale_int * inH), 0).view(-1, scale_int * inW, 1)
+        ####
+        mask_h = torch.cat([mask_h] * (scale_int * inW), 2).view(-1, scale_int * inW, 1)
+        mask_w = torch.cat([mask_w] * (scale_int * inH), 0).view(-1, scale_int * inW, 1)
+
+        pos_mat = torch.cat((h_offset_coord, w_offset_coord), 2)
+        mask_mat = torch.sum(torch.cat((mask_h,mask_w),2),2).view(scale_int*inH,scale_int*inW)
+        mask_mat = mask_mat.eq(2)
+        pos_mat = pos_mat.contiguous().view(1, -1,2)
+        if add_scale:
+            pos_mat = torch.cat((scale_mat.view(1,-1,1), pos_mat),2)
+
+        return pos_mat,mask_mat ##outH*outW*2 outH=scale_int*inH , outW = scale_int *inW
 
     def train(self):
         epoch = self.scheduler.last_epoch + 1
@@ -75,25 +151,23 @@ class Trainer():
             # forward
             sr = self.model(lr[0])
 
-            # sr2lr = []
-            # for i in range(len(self.dual_models)):
-            #     sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
-            #     sr2lr.append(sr2lr_i)
+            sr2lr = []
+            for i in range(len(self.dual_models)):
+                sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
+                sr2lr.append(sr2lr_i)
 
             # compute primary loss
             ##여기서 sr사이즈 hr사이즈
             loss_primary = self.loss(sr[-1], hr)
-            #flip
-            loss_primary += self.loss(sr[0], lr[0])
-            
-            #copute flip loss
-            loss_flip =0
-            # for i in range(0, len(sr)):
-            #     loss_flip+= self.loss(sr[i], fflip_sr[i])
+            for i in range(1, len(sr)):
+                loss_primary += self.loss(sr[i - 1 - len(sr)], lr[i - len(sr)])
+
+            loss_dual = self.loss(sr2lr[0], lr[0])
+            for i in range(1, len(self.scale)):
+                loss_dual += self.loss(sr2lr[i], lr[i])
 
             # compute total loss
-            loss =  loss_primary
-            # loss =  loss_primary+ self.opt.dual_weight 
+            loss = loss_primary + self.opt.dual_weight * loss_dual
             
             if loss.item() < self.opt.skip_threshold * self.error_last:
                 loss.backward()                
@@ -128,12 +202,13 @@ class Trainer():
 
         self.model.eval()
 
+
         timer_test = utility.timer()
         with torch.no_grad():
+
             int_scale = max(self.scale)
             float_scale = self.float_scale
             scale = int_scale + float_scale
-            res_scale = scale / int_scale
             for si, s in enumerate([int_scale]):
                 eval_psnr = 0
                 eval_simm =0
@@ -150,28 +225,37 @@ class Trainer():
                     N,C,H,W = lr[0].size()
                     outH,outW = int(H*scale),int(W*scale)
                     timer_test.tic()
+                    
+                    if self.opt.arbit == True :
+                        scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
+                        scale_coord_map = scale_coord_map.to('cuda')
+                        sr = self.model(lr[0], scale_coord_map)
+                        if isinstance(sr, list): sr = sr[-1]
+                        sr = torch.masked_select(sr,mask.to('cuda'))
+                    else :
+                        sr = self.model(lr[0])
+                        if isinstance(sr, list): sr = sr[-1]
+                    
 
-                    sr = self.model(lr[0])
-                    if isinstance(sr, list): sr = sr[-1]
 
-                    sr= sr.contiguous().view(N, C,outH,outW)
+                    sr = sr.contiguous().view(N, C,outH,outW)
                     sr = utility.quantize(sr, self.opt.rgb_range)
 
                     timer_test.hold()
                
 
-                    if not no_eval:
-                        psnr = utility.calc_psnr(
-                            sr, hr, s, self.opt.rgb_range,
-                            benchmark=self.loader_test.dataset.benchmark
-                        )
+                    # if not no_eval:
+                    #     psnr = utility.calc_psnr(
+                    #         sr, hr, s, self.opt.rgb_range,
+                    #         benchmark=self.loader_test.dataset.benchmark
+                    #     )
                    
-                        # hr_numpy = hr[0].cpu().numpy().transpose(1, 2, 0)
-                        # sr_numpy = sr[0].cpu().numpy().transpose(1, 2, 0)
-                        # simm = utility.SSIM(hr_numpy, sr_numpy)
-                        # eval_simm += simm
+                    #     # hr_numpy = hr[0].cpu().numpy().transpose(1, 2, 0)
+                    #     # sr_numpy = sr[0].cpu().numpy().transpose(1, 2, 0)
+                    #     # simm = utility.SSIM(hr_numpy, sr_numpy)
+                    #     # eval_simm += simm
 
-                        eval_psnr +=psnr
+                    #     eval_psnr +=psnr
 
                     # save test results
                     if self.opt.save_results:

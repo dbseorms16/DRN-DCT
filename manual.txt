@@ -15,14 +15,7 @@ python main.py --data_dir ./dataset --scale 2.9 --pre_train  ./trained_models/fa
 
 python main.py --data_dir ./dataset --scale 2.7  --pre_train  ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 
-python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-
-
-
- -위와 같이 입력하면 4배율의 scale,  ./dataset/face_data의 데이터를 훈련데이터로, ./dataset/benchmark/face_test를 테스트 데이터로 사용하여 훈련을 진행합니다.  --save_results는 결과를 저장하고 싶을때 사용합니다.
-훈련을 이어서 진행하고 싶을 때 는 아래 Test 명령어에서 --pre_train, --pre_trained_dual 옵션을 사용하여 이전 훈련 모델을 불러올 수 있습니다.
--훈련된 모델은 expriment/model에 저장됩니다.
-- 훈련 진행중 PSNR과 Loss 그래프는 experiment에서 확인할 수 있습니다.
+python main.py --data_dir ./dataset --scale 2.7 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 
 
 
@@ -31,51 +24,5 @@ python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/fa
 python main.py --data_dir [root data dir] --save [save dir] --data_test [test data dir] --scale [scale] --model [DRN-L/DRN-S] --pre_train [model path] --pre_train_dual [dual model path] --test_only --save_result
 
 ex)
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.3 --model DRN-L --pre_train_metasr  ./trained_models/face_data_best_x4.pt  --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.3 --model DRN-L  --pre_train  ./trained_models/face_data_best_x4.pt --pre_train_dual  ./trained_models/face_data_dual_best_x4.pt --test_only --save_results
 
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2_replace.pt --test_only --save_results
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.9 --model DRN-L --pre_train ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2_replace.pt --test_only --save_results
-
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/face_data_best_x2.pt --pre_train_dual  ./trained_models/face_data_dual_best_x2.pt --test_only --save_results
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/model/2.9/face_data_best_x2.pt --pre_train_dual  ./experiments/model/2.9/face_data_dual_best_x2.pt --test_only --save_results
-
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/m2.7/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.7/face_data_dual_best_x2.pt --test_only --save_results
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./experiments/d2.7new/face_data_best_x2.pt --pre_train_dual  ./experiments/d2.7new/face_data_dual_best_x2.pt --test_only --save_results
-
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/m2.1/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.1/face_data_dual_best_x2.pt --test_only --save_results
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/m2.1new/face_data_best_x2.pt --pre_train_dual  ./experiments/m2.1new/face_data_dual_best_x2.pt --test_only --save_results
-
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.1 --model DRN-L --pre_train ./experiments/s2.1/face_data_best_x2.pt --pre_train_dual  ./experiments/s2.1/face_data_dual_best_x2.pt --test_only --save_results
-
-  -위와 같이 커맨더 창에 입력하면 ./experiments/result 에 테스트 결과가 저장되고 테스트셋의 경로는 ./dataset/benchmark/face_test 가 됩니다. 이 때 이용하는 모델은 ./trained_models/face_trained_x4.pt와 ./trained_models/face_trained_dual_x4.pt입니다.  --test_only는 훈련이 아닌 테스트만 진행할 때 입력하는 명령어이고, 
-
-*DRN-L과 DRN-S의 차이는 파라미터의 수 입니다. DRN-L의 파라미터 수가 더 많아 더 좋은 결과를 얻을 수 있습니다.
-
-
------------------------추가 설명 --------------------------
--기타 옵션들은 option.py에서 확인 할 수 있고, 변경할 수 있습니다. 
--테스트 폴더와 train data폴더의 이름을 변경하고 싶으면 해당폴더.py를 생성하여야 합니다 ex)face_test.py 참조.
-- 테스트 폴더는 기본적으로 HR이미지는 [root data dir]/benchmark/[test data dir]/HR 경로.
-LR이미지는[root data dir]/benchmark/[test data dir]/LR_bicubic/xscale(ex x4) 로 설정되어 있습니다. 변경하려면 face_test.py를 참조.
-- train data 폴더는 기본적으로 [root data dir]/[train data dir] /[train data name]_HR
- [root data dir]/[train data dir] /[train data name]_LR_bicubic/xscale 로 설정되어 있습니다. 변경하려면 face_data.py 참조
-- 이미지를 불러오는 방식은 HR이미지를 먼저 불러온 후  "HRname"+"x"+scale을 LR폴더에서 불러옵니다.
-	ex)scale =4일때,  HR : 0001.jpg , LR : 0001.x4.jpg
-- x4 scale 실행시 x2 이미지도 필요로 합니다.
--데이터 입력 관련코드는  srdata.py 참조. (디렉토리, 확장자 등)
--LR 이미지는 scale =4 이면 HR의 4분의 1 크기의 LR이미지를 입력으로 받습니다.
-
--consistency loss 및 emsemble loss 사용은 trainer.py 주석해제, 해당 loss를 total loss 에 추가.
-
-
-
-
+python main.py --arbit True --arbitrary rdn_metasr --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/model_1000.pt  --test_only --save_results

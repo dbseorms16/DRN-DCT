@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from model.common import DownBlock
 import model.drn
+import model.rdn_metasr
 from option import args
 
 
@@ -36,8 +37,12 @@ class Model(nn.Module):
             sf = 2
         else:
             sf = 3
+        
+        if opt.arbitrary == 'DRN':
+            self.model = drn.make_model(opt).to(self.device)
+        elif opt.arbitrary == 'rdn_metasr':
+            self.model = rdn_metasr.make_model(opt).to(self.device)
 
-        self.model = drn.make_model(opt).to(self.device)
         self.dual_models = []
         for _ in self.opt.scale:
             dual_model = DownBlock(opt, sf).to(self.device)
@@ -57,12 +62,16 @@ class Model(nn.Module):
         num_parameter = self.count_parameters(self.model)
         ckp.write_log(f"The number of parameters is {num_parameter / 1000 ** 2:.2f}M")
 
-    def forward(self, x, idx_scale=0):
+    def forward(self, x, posmat,  idx_scale=0):
         self.idx_scale = idx_scale
         target = self.get_model()
         if hasattr(target, 'set_scale'):
             target.set_scale(idx_scale)
-        return self.model(x)
+        if self.opt.arbit :
+            model = self.model(x, posmat)
+        else :
+            model = self.model(x)
+        return  model
 
     def get_model(self):
         if self.n_GPUs == 1:

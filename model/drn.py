@@ -297,9 +297,40 @@ class DRN(nn.Module):
             # output sr imgs
             sr = self.tail[idx + 1](x)
             sr = self.add_mean(sr)
-            sr = self.dct(sr)
-           
-            sr = self.SRCNN(sr)
+
             results.append(sr)
 
         return results
+
+    # def forward(self, x):
+    #     # upsample x to target sr size
+    #     x = self.upsample(x)
+
+    #     # preprocess
+    #     x = self.sub_mean(x)
+    #     x = self.head(x)
+
+    #     # down phases,
+    #     copies = []
+    #     for idx in range(self.phase):
+    #         copies.append(x)
+    #         x = self.down[idx](x)
+
+    #     # up phases
+    #     sr = self.tail[0](x)
+    #     sr = self.add_mean(sr)
+    #     results = [sr]
+    #     for idx in range(self.phase):
+    #         # upsample to SR features
+    #         x = self.up_blocks[idx](x)
+    #         # concat down features and upsample features
+    #         x = torch.cat((x, copies[self.phase - idx - 1]), 1)
+    #         # output sr imgs
+    #         sr = self.tail[idx + 1](x)
+    #         sr = self.add_mean(sr)
+    #         sr = self.dct(sr)
+           
+    #         # sr = self.SRCNN(sr)
+    #         results.append(sr)
+
+    #     return results
