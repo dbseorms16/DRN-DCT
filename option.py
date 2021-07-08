@@ -44,11 +44,11 @@ parser.add_argument('--n_feats', type=int, default=16,
                     help='number of feature maps')
 parser.add_argument('--negval', type=float, default=0.2,
                     help='Negative value parameter for Leaky ReLU')
-parser.add_argument('--test_every', type=int, default =10,
+parser.add_argument('--test_every', type=int, default = 5115,
                     help='do test per every N batches')
 parser.add_argument('--epochs', type=int, default=1000,
                     help='number of epochs to train')
-parser.add_argument('--batch_size', type=int, default=1,
+parser.add_argument('--batch_size', type=int, default=8,
                     help='input batch size for training')
 parser.add_argument('--self_ensemble', action='store_true',
                     help='use self-ensemble method for test')
@@ -82,8 +82,8 @@ parser.add_argument('--save_results', action='store_true',
 parser.add_argument('--pre_train_metasr', type=str, default='.',
                     help='pre-trained dual model directory')
 
-parser.add_argument('--arbit', type=bool, default=False,
-                    help='Arbitrary Model Use')
+parser.add_argument('--metaSR', type=bool, default=False,
+                    help='Use metaSR')
 
 parser.add_argument('--arbitrary', type=str, default='DRN',
                     help='Arbitrary Model')

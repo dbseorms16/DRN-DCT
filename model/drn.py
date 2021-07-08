@@ -56,9 +56,9 @@ class new2(nn.Module):
         x = self.tail(x)
         return x
 
-class SRCNN(nn.Module):
+class NewCNN(nn.Module):
     def __init__(self, opt, num_channels=3, conv=common.default_conv):
-        super(SRCNN, self).__init__()
+        super(NewCNN, self).__init__()
         self.opt = opt
         self.n_feats = opt.n_feats
         kernel_size = 3
@@ -209,7 +209,7 @@ class DRN(nn.Module):
         n_feats = opt.n_feats
         kernel_size = 3
         self.dct = DCT(opt)
-        self.SRCNN = SRCNN(opt)
+        self.NewCNN = NewCNN(opt)
 
         act = nn.ReLU(True)
 
@@ -297,40 +297,8 @@ class DRN(nn.Module):
             # output sr imgs
             sr = self.tail[idx + 1](x)
             sr = self.add_mean(sr)
-
+            sr = self.dct(sr)
+            sr = self.NewCNN(sr)
             results.append(sr)
 
         return results
-
-    # def forward(self, x):
-    #     # upsample x to target sr size
-    #     x = self.upsample(x)
-
-    #     # preprocess
-    #     x = self.sub_mean(x)
-    #     x = self.head(x)
-
-    #     # down phases,
-    #     copies = []
-    #     for idx in range(self.phase):
-    #         copies.append(x)
-    #         x = self.down[idx](x)
-
-    #     # up phases
-    #     sr = self.tail[0](x)
-    #     sr = self.add_mean(sr)
-    #     results = [sr]
-    #     for idx in range(self.phase):
-    #         # upsample to SR features
-    #         x = self.up_blocks[idx](x)
-    #         # concat down features and upsample features
-    #         x = torch.cat((x, copies[self.phase - idx - 1]), 1)
-    #         # output sr imgs
-    #         sr = self.tail[idx + 1](x)
-    #         sr = self.add_mean(sr)
-    #         sr = self.dct(sr)
-           
-    #         # sr = self.SRCNN(sr)
-    #         results.append(sr)
-
-    #     return results

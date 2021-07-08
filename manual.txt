@@ -7,7 +7,6 @@ python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/fa
 python main.py --data_dir ./dataset --scale 4.0 --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.0 --model DRN-L --pre_train_metasr  ./trained_models/face_data_best_x4.pt  --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
 
-python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 
 
 python main.py --data_dir ./dataset --scale 2.9 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
@@ -17,6 +16,7 @@ python main.py --data_dir ./dataset --scale 2.7  --pre_train  ./trained_models/f
 
 python main.py --data_dir ./dataset --scale 2.7 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 
+python main.py --arbitrary DRN --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
 
 
 ----------------------------Test-------------------------------
@@ -25,4 +25,4 @@ python main.py --data_dir [root data dir] --save [save dir] --data_test [test da
 
 ex)
 
-python main.py --arbit True --arbitrary rdn_metasr --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/model_1000.pt  --test_only --save_results
+python main.py --metaSR True --arbitrary rdn_metasr --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/model_1000.pt  --test_only --save_results

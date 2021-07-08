@@ -132,7 +132,7 @@ class Trainer():
         self.loss.start_log()
         for name, param in self.model.named_parameters():
             splitname = name.split('.')
-            if splitname[1] != 'SRCNN':
+            if splitname[1] != 'NewCNN':
                 param.requires_grad = False
 
 
@@ -140,6 +140,8 @@ class Trainer():
         timer_data, timer_model = utility.timer(), utility.timer()
         for batch, (lr, hr, idx) in enumerate(self.loader_train):
             lr, hr = self.prepare(lr, hr)
+            _,_,H,W = lr[0].size()
+
             timer_data.hold()
             timer_model.tic()
             
@@ -149,26 +151,34 @@ class Trainer():
                 self.dual_optimizers[i].zero_grad()
 
             # forward
-            sr = self.model(lr[0])
+            if self.opt.metaSR == True :
+                scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
+                scale_coord_map = scale_coord_map.to('cuda')
+                sr = self.model(lr[0], scale_coord_map)
+                if isinstance(sr, list): sr = sr[-1]
+                sr[-1] = torch.masked_select(sr[-1],mask.to('cuda'))
+            else :
+                sr = self.model(lr[0])
 
-            sr2lr = []
-            for i in range(len(self.dual_models)):
-                sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
-                sr2lr.append(sr2lr_i)
 
-            # compute primary loss
-            ##여기서 sr사이즈 hr사이즈
+            # sr2lr = []
+            # for i in range(len(self.dual_models)):
+            #     sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
+            #     sr2lr.append(sr2lr_i)
+
+            # # compute primary loss
+            # ##여기서 sr사이즈 hr사이즈
             loss_primary = self.loss(sr[-1], hr)
-            for i in range(1, len(sr)):
-                loss_primary += self.loss(sr[i - 1 - len(sr)], lr[i - len(sr)])
+            # for i in range(1, len(sr)):
+            #     loss_primary += self.loss(sr[i - 1 - len(sr)], lr[i - len(sr)])
 
-            loss_dual = self.loss(sr2lr[0], lr[0])
-            for i in range(1, len(self.scale)):
-                loss_dual += self.loss(sr2lr[i], lr[i])
+            # loss_dual = self.loss(sr2lr[0], lr[0])
+            # for i in range(1, len(self.scale)):
+            #     loss_dual += self.loss(sr2lr[i], lr[i])
 
             # compute total loss
-            loss = loss_primary + self.opt.dual_weight * loss_dual
-            
+            # loss = loss_primary + self.opt.dual_weight * loss_dual
+            loss = loss_primary 
             if loss.item() < self.opt.skip_threshold * self.error_last:
                 loss.backward()                
                 self.optimizer.step()
@@ -226,7 +236,7 @@ class Trainer():
                     outH,outW = int(H*scale),int(W*scale)
                     timer_test.tic()
                     
-                    if self.opt.arbit == True :
+                    if self.opt.metaSR == True :
                         scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
                         scale_coord_map = scale_coord_map.to('cuda')
                         sr = self.model(lr[0], scale_coord_map)
