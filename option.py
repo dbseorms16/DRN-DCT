@@ -13,11 +13,11 @@ parser.add_argument('--n_GPUs', type=int, default=1,
                     help='number of GPUs')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed')
-parser.add_argument('--data_dir', type=str, default='data_path',
+parser.add_argument('--data_dir', type=str, default='./dataset',
                     help='dataset directory')
-parser.add_argument('--data_train', type=str, default='DF2K',
+parser.add_argument('--data_train', type=str, default='face_data',
                     help='train dataset name')
-parser.add_argument('--data_test', type=str, default='Set5',
+parser.add_argument('--data_test', type=str, default='face_test',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='',
                     help='train/test data range')
@@ -25,7 +25,7 @@ parser.add_argument('--data_range', type=str, default='',
 #                     help='super resolution scale')
 parser.add_argument('--scale', type=str, default='2.0',
                     help='super resolution scale')
-parser.add_argument('--patch_size', type=int, default=80,
+parser.add_argument('--patch_size', type=int, default=200,
                     help='output patch size')
 parser.add_argument('--rgb_range', type=int, default=255,
                     help='maximum value of RGB')
@@ -33,7 +33,7 @@ parser.add_argument('--n_colors', type=int, default=3,
                     help='number of color channels to use')
 parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
-parser.add_argument('--model', help='model name: DRN-S | DRN-L', required=True)
+parser.add_argument('--model', help='model name: DRN-S | DRN-L', default='DRN-L')
 parser.add_argument('--pre_train', type=str, default='.',
                     help='pre-trained model directory')
 parser.add_argument('--pre_train_dual', type=str, default='.',
@@ -44,7 +44,7 @@ parser.add_argument('--n_feats', type=int, default=16,
                     help='number of feature maps')
 parser.add_argument('--negval', type=float, default=0.2,
                     help='Negative value parameter for Leaky ReLU')
-parser.add_argument('--test_every', type=int, default = 5115,
+parser.add_argument('--test_every', type=int, default = 1000,
                     help='do test per every N batches')
 parser.add_argument('--epochs', type=int, default=1000,
                     help='number of epochs to train')
@@ -72,17 +72,17 @@ parser.add_argument('--skip_threshold', type=float, default='1e6',
                     help='skipping batch that has large error')
 parser.add_argument('--dual_weight', type=float, default=0.1,
                     help='the weight of dual loss')
-parser.add_argument('--save', type=str, default='./experiment/test/',
+parser.add_argument('--save', type=str, default='./experiments',
                     help='file name to save')
-parser.add_argument('--print_every', type=int, default=100,
+parser.add_argument('--print_every', type=int, default=10,
                     help='how many batches to wait before logging training status')
-parser.add_argument('--save_results', action='store_true',
+parser.add_argument('--save_results', type=str, default='True',
                     help='save output results')
                     
 parser.add_argument('--pre_train_metasr', type=str, default='.',
                     help='pre-trained dual model directory')
 
-parser.add_argument('--metaSR', type=bool, default=False,
+parser.add_argument('--metaSR', type=str, default='False',
                     help='Use metaSR')
 
 parser.add_argument('--arbitrary', type=str, default='DRN',
@@ -93,10 +93,19 @@ args.scale = math.floor(float(strscale[0]))
 args.float_scale = float(strscale[1]) / 10
 args.total_scale = args.scale + args.float_scale
 
-utility.init_model(args)
-
+# if args.scale == 3:
+#     args.scale = [3]
+# utility.init_model(args)
 
 args.scale = [pow(2, s+1) for s in range(int(np.log2(args.scale)))]
+# if args.scale == 3:
+#     args.scale = [3]
+args = parser.parse_args()
+strscale = args.scale.split('.')
+args.int_scale = math.floor(float(strscale[0]))
+args.float_scale = float(strscale[1]) / 10
+args.total_scale = args.int_scale + args.float_scale
+args.scale = [args.int_scale]
 
 
 # if args.scale=='':
@@ -106,7 +115,7 @@ args.scale = [pow(2, s+1) for s in range(int(np.log2(args.scale)))]
 #     #print(args.scale)
 # else:
 #     args.scale = list(map(lambda x: float(x), args.scale.split('+')))
-# print(args.scale)
+print(args.scale)
 
 
 

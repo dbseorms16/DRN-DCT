@@ -53,6 +53,8 @@ def calc_psnr(sr, hr, scale, rgb_range, benchmark=False):
     if sr.size(-2) > hr.size(-2) or sr.size(-1) > hr.size(-1):
         print("the dimention of sr image is not equal to hr's! ")
         sr = sr[:,:,:hr.size(-2),:hr.size(-1)]
+
+    # hr = hr[:, :, : sr.size(-2),  :sr.size(-1)]
     diff = (sr - hr).data.div(rgb_range)
 
     if benchmark:
@@ -69,8 +71,6 @@ def calc_psnr(sr, hr, scale, rgb_range, benchmark=False):
 
     valid = diff[:, :, shave:-shave, shave:-shave]
     mse = valid.pow(2).mean()
-
-
 
     return -10 * math.log10(mse)
 
@@ -157,6 +157,10 @@ def init_model(args):
         if args.scale == 4:
             args.n_blocks = 40
             args.n_feats = 20
+        
+        elif args.scale == 3:
+            args.n_feats = 16
+
         elif args.scale == 8:
             args.n_blocks = 36
             args.n_feats = 10

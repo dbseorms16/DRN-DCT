@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import copy
 import math
 import imageio
-
+import torch.nn.functional as nnf
 class Trainer():
     def __init__(self, opt, loader, my_model, my_loss, ckp):
         self.opt = opt
@@ -29,21 +29,19 @@ class Trainer():
         self.loss = my_loss
         self.optimizer = utility.make_optimizer(opt, self.model)
         self.scheduler = utility.make_scheduler(opt, self.optimizer)
-        self.dual_models = self.model.dual_models
-        self.dual_optimizers = utility.make_dual_optimizer(opt, self.dual_models)
-        self.dual_scheduler = utility.make_dual_scheduler(opt, self.dual_optimizers)
+        # self.dual_models = self.model.dual_models
+        # self.dual_optimizers = utility.make_dual_optimizer(opt, self.dual_models)
+        # self.dual_scheduler = utility.make_dual_scheduler(opt, self.dual_optimizers)
         self.error_last = 1e8
 
     ######by given the scale and the size of input image
     ######we caculate the input matrix for the weight prediction network
     ###### input matrix for weight prediction network
-    def input_matrix_wpn(self,inH, inW, scale, add_scale=True):
+    def input_matrix_wpn(self,inH, inW, outH, outW, scale, add_scale=True):
         '''
         inH, inW: the size of the feature maps
         scale: is the upsampling times
         '''
-        outH, outW = int(scale*inH), int(scale*inW)
-
         #### mask records which pixel is invalid, 1 valid or o invalid
         #### h_offset and w_offset caculate the offset to generate the input matrix
         scale_int = int(math.ceil(scale))
@@ -117,12 +115,12 @@ class Trainer():
 
     def train(self):
         epoch = self.scheduler.last_epoch + 1
-        lr = self.scheduler.get_lr()[0]
+        lr = self.scheduler.get_last_lr()[0]
 
         int_scale = max(self.scale)
         float_scale = self.float_scale
-        scale = int_scale + float_scale
-        res_scale = scale / int_scale 
+        total_scale = int_scale + float_scale
+        res_scale = total_scale / int_scale 
         self.ckp.set_epoch(epoch)
 
 
@@ -132,43 +130,48 @@ class Trainer():
         self.loss.start_log()
         for name, param in self.model.named_parameters():
             splitname = name.split('.')
-            if splitname[1] != 'NewCNN':
+            # if splitname[1] != 'h2a2sr':
+            if splitname[1] != 'P2W':
                 param.requires_grad = False
-
 
         self.model.train()
         timer_data, timer_model = utility.timer(), utility.timer()
         for batch, (lr, hr, idx) in enumerate(self.loader_train):
             lr, hr = self.prepare(lr, hr)
-            _,_,H,W = lr[0].size()
+            N,C,H,W = lr[0].size()
 
             timer_data.hold()
             timer_model.tic()
             
             self.optimizer.zero_grad()
+            _,_, outH, outW = hr.size()
 
-            for i in range(len(self.dual_optimizers)):
-                self.dual_optimizers[i].zero_grad()
-
+            # for i in range(len(self.dual_optimizers)):
+            #     self.dual_optimizers[i].zero_grad()
+            
             # forward
             if self.opt.metaSR == True :
-                scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
+                inH , inW =  int(H / res_scale), int(W / res_scale)
+                outH, outW = int(total_scale*inH), int(total_scale*inW)
+                hr = hr[:, :, : outH,  :outW]
+                lr[0] = nnf.interpolate(hr, size=(inH, inW), mode='bicubic', align_corners=False).to('cuda:0')
+
+                inH , inW =  int(inH * 2), int(inW * 2)
+                scale_coord_map, mask = self.input_matrix_wpn(inH, inW, outH, outW, res_scale)
+                # scale_coord_map, mask = self.input_matrix_wpn(inH, inW, outH, outW, total_scale)
                 scale_coord_map = scale_coord_map.to('cuda')
-                sr = self.model(lr[0], scale_coord_map)
+                sr = self.model(lr[0], outH, outW, scale_coord_map)
                 if isinstance(sr, list): sr = sr[-1]
-                sr[-1] = torch.masked_select(sr[-1],mask.to('cuda'))
-            else :
-                sr = self.model(lr[0])
+                sr = torch.masked_select(sr, mask.to('cuda'))
 
-
-            # sr2lr = []
-            # for i in range(len(self.dual_models)):
-            #     sr2lr_i = self.dual_models[i](sr[(i-1) - len(self.dual_models)])
-            #     sr2lr.append(sr2lr_i)
+            else: 
+                sr = self.model(lr[0], outH, outW)
+                if isinstance(sr, list): sr = sr[-1]
 
             # # compute primary loss
             # ##여기서 sr사이즈 hr사이즈
-            loss_primary = self.loss(sr[-1], hr)
+            sr = sr.contiguous().view(N, C, outH,outW)    
+            loss_primary = self.loss(sr, hr)
             # for i in range(1, len(sr)):
             #     loss_primary += self.loss(sr[i - 1 - len(sr)], lr[i - len(sr)])
 
@@ -182,8 +185,8 @@ class Trainer():
             if loss.item() < self.opt.skip_threshold * self.error_last:
                 loss.backward()                
                 self.optimizer.step()
-                for i in range(len(self.dual_optimizers)):
-                    self.dual_optimizers[i].step()
+                # for i in range(len(self.dual_optimizers)):
+                #     self.dual_optimizers[i].step()
             else:
                 print('Skip this batch {}! (Loss: {})'.format(
                     batch + 1, loss.item()
@@ -218,7 +221,9 @@ class Trainer():
 
             int_scale = max(self.scale)
             float_scale = self.float_scale
-            scale = int_scale + float_scale
+            total_scale = int_scale + float_scale
+            res_scale = total_scale / int_scale 
+
             for si, s in enumerate([int_scale]):
                 eval_psnr = 0
                 eval_simm =0
@@ -233,22 +238,28 @@ class Trainer():
 
 
                     N,C,H,W = lr[0].size()
-                    outH,outW = int(H*scale),int(W*scale)
                     timer_test.tic()
+                    _,_, outH, outW = hr.size()
                     
                     if self.opt.metaSR == True :
-                        scale_coord_map, mask = self.input_matrix_wpn(H,W, scale)
-                        scale_coord_map = scale_coord_map.to('cuda')
-                        sr = self.model(lr[0], scale_coord_map)
-                        if isinstance(sr, list): sr = sr[-1]
-                        sr = torch.masked_select(sr,mask.to('cuda'))
+                            inH , inW =  int(H / res_scale), int(W / res_scale)
+                            outH, outW = int(total_scale*inH), int(total_scale*inW)
+                            hr = hr[:, :, : outH,  :outW]
+                            lr = nnf.interpolate(hr, size=(inH, inW), mode='bicubic', align_corners=False).to('cuda:0')
+
+                            inH , inW =  int(inH * 2), int(inW * 2)
+                            scale_coord_map, mask = self.input_matrix_wpn(inH, inW, outH, outW, res_scale)
+                            # scale_coord_map, mask = self.input_matrix_wpn(inH, inW, outH, outW, total_scale)
+                            scale_coord_map = scale_coord_map.to('cuda')
+                            sr = self.model(lr, outH, outW, scale_coord_map)
+                            if isinstance(sr, list): sr = sr[-1]
+                            sr = torch.masked_select(sr, mask.to('cuda'))
+
                     else :
-                        sr = self.model(lr[0])
+                        sr = self.model(lr[0], outH, outW)
                         if isinstance(sr, list): sr = sr[-1]
-                    
 
-
-                    sr = sr.contiguous().view(N, C,outH,outW)
+                    sr = sr.contiguous().view(N, C, outH,outW)    
                     sr = utility.quantize(sr, self.opt.rgb_range)
 
                     timer_test.hold()
@@ -294,8 +305,8 @@ class Trainer():
 
     def step(self):
         self.scheduler.step()
-        for i in range(len(self.dual_scheduler)):
-            self.dual_scheduler[i].step()
+        # for i in range(len(self.dual_scheduler)):
+        #     self.dual_scheduler[i].step()
 
     def prepare(self, *args):
         device = torch.device('cpu' if self.opt.cpu else 'cuda')

@@ -1,28 +1,29 @@
 \---------------------------Train-------------------------------
 #커맨드 입력 형식
-python main.py --data_dir [root data dir] --scale [scale] --data_train [train data dir] --data_test [test data dir] --model [DRN-L|DRN-S]  --save [save dir]  --save_results
-
+python main.py --data_dir [root data dir] --scale [scale] --data_train [train data dir] --data_test [test data dir] --model [DRN-L|DRN-S]  --save [save dir]  
 ex)
-python main.py --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-python main.py --data_dir ./dataset --scale 4.0 --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-python main.py --data_dir ./dataset --save ./experiments --data_test face_test --scale 4.0 --model DRN-L --pre_train_metasr  ./trained_models/face_data_best_x4.pt  --pre_train  ./trained_models/face_trained_x4.pt --pre_train_dual  ./trained_models/face_trained_dual_x4.pt --test_only --save_results
 
-
-
-python main.py --data_dir ./dataset --scale 2.9 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-
-
-python main.py --data_dir ./dataset --scale 2.7  --pre_train  ./trained_models/face_data_best_x2_replace.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-
-python main.py --data_dir ./dataset --scale 2.7 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-
-python main.py --arbitrary DRN --data_dir ./dataset --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt --pre_train_dual  ./trained_models/face_trained_dual_x2.pt --data_train face_data --data_test face_test --model DRN-L  --save ./experiments  --save_results
-
+python main.py --arbitrary DRN --scale 2.1 --pre_train  ./trained_models/face_trained_x2.pt  --data_train face_data --data_test face_test    
 
 ----------------------------Test-------------------------------
 #커맨드 입력형식
-python main.py --data_dir [root data dir] --save [save dir] --data_test [test data dir] --scale [scale] --model [DRN-L/DRN-S] --pre_train [model path] --pre_train_dual [dual model path] --test_only --save_result
+python main.py --data_dir [root data dir] --save [save dir] --data_test [test data dir] --scale [scale] --model [DRN-L/DRN-S] --pre_train [model path]  --test_only --save_result
 
 ex)
 
-python main.py --metaSR True --arbitrary rdn_metasr --data_dir ./dataset --save ./experiments --data_test face_test --scale 2.7 --model DRN-L --pre_train ./trained_models/model_1000.pt  --test_only --save_results
+python main.py --metaSR True  --data_test face_test --scale 3.5 --pre_train ./experiments/meta3.5/face_data_best_x3.pt --test_only 
+python main.py --metaSR False  --data_test face_test --scale 2.2 --pre_train ./trained_models/face_data_best_x2.pt   --test_only 
+python main.py --metaSR True  --data_test face_test --scale 3.8 --pre_train ./experiments/meta3.8/face_data_best_x3.pt --test_only 
+
+python main.py --scale 2.8 --pre_train  ./experiments/newdct2.8/face_data_best_x2.pt --data_train face_data --data_test face_test  --test_only --metaSR False
+python main.py --scale 2.5 --pre_train  ./experiments/newdct2.5/face_data_best_x2.pt --data_train face_data --data_test face_test --test_only --metaSR False
+python main.py --scale 2.2 --pre_train  ./experiments/newdct2.2/face_data_best_x2.pt --data_train face_data --data_test face_test --test_only --metaSR False  
+
+python main.py --scale 2.2 --pre_train  ./experiments/newdct2.2/face_data_best_x2.pt --data_train face_data --data_test B100 --test_only --metaSR False
+
+---meta_sr-- 
+python main.py --scale 2.5 --pre_train ./trained_models/model_1000.pt --data_train face_data --data_test B100 --test_only --metaSR True 
+
+
+python main.py --scale 2.0 --pre_train ./trained_models/model_best.pt --data_train face_data --data_test B100 --test_only --metaSR False
+

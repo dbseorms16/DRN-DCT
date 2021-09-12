@@ -4,7 +4,10 @@ import torch
 import torch.nn as nn
 from model.common import DownBlock
 import model.drn
+import model.rdn
+import model.drn_metasr
 import model.rdn_metasr
+
 from option import args
 
 
@@ -38,10 +41,13 @@ class Model(nn.Module):
         else:
             sf = 3
         
-        if opt.arbitrary == 'DRN':
+        print(self.opt.metaSR)
+        if self.opt.metaSR == True :
+            # self.model = rdn_metasr.make_model(opt).to(self.device)
+            self.model = drn_metasr.make_model(opt).to(self.device)
+        else:
             self.model = drn.make_model(opt).to(self.device)
-        elif opt.arbitrary == 'rdn_metasr':
-            self.model = rdn_metasr.make_model(opt).to(self.device)
+            # self.model = rdn.make_model(opt).to(self.device)
 
         self.dual_models = []
         for _ in self.opt.scale:
@@ -62,15 +68,15 @@ class Model(nn.Module):
         num_parameter = self.count_parameters(self.model)
         ckp.write_log(f"The number of parameters is {num_parameter / 1000 ** 2:.2f}M")
 
-    def forward(self, x, posmat=0,  idx_scale=0):
+    def forward(self, x, outH, outW, posmat=0,  idx_scale=0):
         self.idx_scale = idx_scale
         target = self.get_model()
         if hasattr(target, 'set_scale'):
             target.set_scale(idx_scale)
-        if self.opt.metaSR :
+        if self.opt.metaSR == True:
             model = self.model(x, posmat)
         else :
-            model = self.model(x)
+            model = self.model(x, outH, outW)
         return  model
 
     def get_model(self):

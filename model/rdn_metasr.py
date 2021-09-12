@@ -7,8 +7,10 @@ import time
 import torch
 import torch.nn as nn
 import math
+import torch.nn.functional as nnf
 
 def make_model(opt, parent=False):
+    print('make Meta RDN')
     return MetaRDN(opt)
 
 class RDB_Conv(nn.Module):
@@ -64,9 +66,12 @@ class MetaRDN(nn.Module):
     def __init__(self, opt):
         super(MetaRDN, self).__init__()
         
-        int_scale = max(opt.scale)
-        float_scale = opt.float_scale
-        self.scale = int_scale + float_scale
+        self.int_scale = max(opt.scale)
+        self.float_scale = opt.float_scale
+        self.total_scale = self.int_scale + self.float_scale
+        self.res_scale = self.total_scale / self.int_scale
+
+        self.scale = self.int_scale + self.float_scale
         r = opt.scale[0]
         G0 = 64
         kSize = 3
@@ -111,6 +116,9 @@ class MetaRDN(nn.Module):
 
     def forward(self, x, pos_mat):
         #d1 =time.time()
+        _,_, h, w = x.size()
+        th, tw = int(h / self.res_scale) , int(w / self.res_scale)
+        x = nnf.interpolate(x, size=(th, tw), mode='bicubic', align_corners=False).to('cuda:0')
         x = self.sub_mean(x)
         f__1 = self.SFENet1(x)
         x = self.SFENet2(f__1)

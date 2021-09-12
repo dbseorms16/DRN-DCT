@@ -47,13 +47,13 @@ class Checkpoint():
             trainer.optimizer.state_dict(),
             os.path.join(self.dir, 'optimizer.pt')
         )
-        dual_optimizers = {}
-        for i in range(len(trainer.dual_optimizers)):
-            dual_optimizers[i] = trainer.dual_optimizers[i]
-        torch.save(
-            dual_optimizers,
-            os.path.join(self.dir, 'dual_optimizers.pt')
-        )
+        # dual_optimizers = {}
+        # for i in range(len(trainer.dual_optimizers)):
+        #     dual_optimizers[i] = trainer.dual_optimizers[i]
+        # torch.save(
+        #     dual_optimizers,
+        #     os.path.join(self.dir, 'dual_optimizers.pt')
+        # )
 
     def add_log(self, log):
         self.log = torch.cat([self.log, log])
@@ -81,7 +81,7 @@ class Checkpoint():
                 label='Scale {}'.format(scale)
             )
         plt.legend()
-        plt.xlabel('Epochs')
+        plt.xlabel('Epochs') 
         plt.ylabel('PSNR')
         plt.grid(True)
         plt.savefig('{}/test_{}.pdf'.format(self.dir, self.opt.data_test))

@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as nnf
 from option import args
+from model import dct
 
 
 
@@ -49,10 +50,17 @@ class Loss(nn.modules.loss._Loss):
         for i, l in enumerate(self.loss):
             if l['function'] is not None:
 
+                b,c,h,w = hr.size()
                 #scale 3
-                if args.scale[0] ==3:
-                    hr = nnf.interpolate(hr, size=(len(sr[0][0]), len(sr[0][0])), mode='bicubic', align_corners=False)
+                # if args.scale[0] ==3:
+                #     hr = nnf.interpolate(hr, size=(len(sr[0][0]), len(sr[0][0])), mode='bicubic', align_corners=False)
+                # sr = self.dct(sr)
+                # hr = self.dct(hr)
 
+                # sr = sr[:,:,:h-44,:w-36]
+                # hr = hr[:,:,:h-44,:w-36]
+                # sr = self.idct(sr)
+                # hr = self.idct(hr)
                 loss = l['function'](sr, hr)
                 effective_loss = l['weight'] * loss
                 losses.append(effective_loss)

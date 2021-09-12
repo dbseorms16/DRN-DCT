@@ -61,8 +61,8 @@ class SRData(data.Dataset):
             filename, _ = os.path.splitext(os.path.basename(f))
             for si, s in enumerate(self.scale):
                 names_lr[si].append(os.path.join(
-                    self.dir_lr, 'X{}/{}x{}{}'.format(
-                        s, filename, s, self.ext[1]
+                    self.dir_lr, '{}x{}{}'.format(
+                        filename, s, self.ext[1]
                     )
                 ))
 
@@ -86,6 +86,7 @@ class SRData(data.Dataset):
     def _load_file(self, idx):
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
+        # f_lr = [self.images_lr[idx_scale][idx] for idx_scale in range(len(self.scale))]
         f_lr = [self.images_lr[idx_scale][idx] for idx_scale in range(len(self.scale))]
 
 
@@ -97,18 +98,23 @@ class SRData(data.Dataset):
     def get_patch(self, lr, hr):
         scale = self.scale
         multi_scale = len(self.scale) > 1
-        if self.train:
-            if isinstance(lr, list):
-                ih, iw = lr[0].shape[:2]
-            else:
-                ih, iw = lr.shape[:2]
-            hr = hr
-        else:
-            if isinstance(lr, list):
-                ih, iw = lr[0].shape[:2]
-            else:
-                ih, iw = lr.shape[:2]
-            hr = hr
+        # if self.train:
+        #     lr, hr = common.get_patch(
+        #         lr,
+        #         hr,
+        #         patch_size=self.args.patch_size,
+        #         scale=scale,
+        #         multi_scale=multi_scale
+        #     )
+        #     if not self.args.no_augment:
+        #         lr, hr = common.augment(lr, hr)
+        # else:
+        #     if isinstance(lr, list):
+        #         ih, iw = lr[0].shape[:2]
+        #     else:
+        #         ih, iw = lr.shape[:2]
+        #     hr = hr[0:ih * scale[0], 0:iw * scale[0]]
             
         return lr, hr
+
 
